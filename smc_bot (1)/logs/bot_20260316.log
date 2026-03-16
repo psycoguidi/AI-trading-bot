@@ -1,0 +1,6 @@
+08:37:02 [INFO    ] backtester: Generazione dati sintetici SMC per EURUSD (800 barre LTF)…
+08:37:02 [INFO    ] backtester: Barre  →  HTF: 13 | MTF: 159 | LTF: 800
+08:37:02 [INFO    ] backtester: Backtest EURUSD: 159 barre MTF | lookback=40
+08:41:14 [INFO    ] backtester: Generazione dati sintetici SMC per EURUSD (800 barre LTF)…
+08:41:14 [INFO    ] backtester: Barre  →  HTF: 13 | MTF: 159 | LTF: 800
+08:41:14 [INFO    ] backtester: Backtest EURUSD: 159 barre MTF | lookback=40
