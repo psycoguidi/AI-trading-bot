@@ -1,0 +1,11 @@
+{
+  "port": 8876,
+  "terminal_path": "C:/Program Files/MetaTrader 5/terminal64.exe",
+  "terminal_data": "C:/Users/NOME_UTENTE/AppData/Roaming/MetaQuotes/Terminal/ID_TERMINALE",
+  "profile": "NOME_PROFILO_SALVATO",
+  "expected_login": 0,
+  "expected_server": "NOME_SERVER_BROKER",
+  "symbol": "XAUUSD",
+  "python_dependencies": "C:/PERCORSO/AI-trading-bot/QUANTIX_IQ/.venv/Lib/site-packages",
+  "python_runtime": "C:/PERCORSO/AI-trading-bot/QUANTIX_IQ/.venv/Scripts/python.exe"
+}

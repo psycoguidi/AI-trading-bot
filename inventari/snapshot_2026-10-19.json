@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-19",
+  "mine_files": 2671,
+  "mine_bytes": 202495666,
+  "extensions": {
+    ".ex5": 1332,
+    ".mq5": 1335,
+    ".md": 2,
+    ".set": 2
+  },
+  "subfolders": {
+    "mine/claude": 2,
+    "mine/DONCHIAN": 6,
+    "mine/Moving Average": 2,
+    "mine/ORB": 4,
+    "mine/ORB/versione 3 sessioni": 6,
+    "mine/ORB/versione 3 sessioni/profit": 8,
+    "mine": 14,
+    "mine/prove_20261007": 260,
+    "mine/prove_ATR_20261016": 234,
+    "mine/prove_crypto_20261010": 691,
+    "mine/prove_FTMO_20261007": 113,
+    "mine/prove_NAS100_20261011": 1313,
+    "mine/prove_XAU_NAS_20261011": 16,
+    "mine/SMC": 2
+  },
+  "reference": "mine/prove_ATR_20261016/prova298.mq5",
+  "reference_sha256": "ed86263f42dd5b5a6116b4586e400a03b0363bb8372ac0dfa0197f0a7f43a2b1",
+  "workbooks": [
+    {
+      "file": "risultati/Confronto_Bot_Trading.xlsx",
+      "sha256": "41b08c774d3c758f2680533ffc5c636ecc61089894745cf33bd4649390e28357",
+      "bytes": 1310750
+    },
+    {
+      "file": "risultati/confronto_finale.xlsx",
+      "sha256": "2f0e1bbc9de93083eb199f207a97be2ce1957e6dddad06dedf56b983e813874d",
+      "bytes": 6425
+    }
+  ],
+  "app_source_files": 47,
+  "profile_inputs": 135,
+  "removed_legacy_generated_files": 14,
+  "backtests_run_for_this_update": false,
+  "observer_public_source": "Configurabile; binario personale escluso, ricompilazione richiesta."
+}

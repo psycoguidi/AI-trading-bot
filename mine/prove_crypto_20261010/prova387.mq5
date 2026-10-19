@@ -1,0 +1,1222 @@
+﻿// prova387: VOLUME_ISOLATION; volume>=media20,risk1
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova336: Verifica nativa Model4 miglior variante328-335 entroDD15, input invariati; non OOS
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova328: PROTECTED_STACK; controllo risk1%,nessuno stack/uscita stale
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova319: Verifica nativa Model4 del migliore ORB_EXITS eleggibile; stessi input, non OOS
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova315: ORB_EXITS; 10R,trailing4R/gap3R,rischio0.75%
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova307: ORB_SESSION_TIME; NY16:30,London10/Asia03fissi server;H4,rischio0.75%
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova277: ORB H4 EMA12/36, efficienza>=0.15, rischio1.25%
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova266: Controllo su tick reali della264, rischio weekend dimezzato e parametri invariati
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova264: ORB3 asimmetrica: rischio weekend dimezzato, max1 posizione
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova220: ORB3 sessioni asimmetrica, rischio1.25%, long dimezzato
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova209: Rischio long dimezzato, rischio short invariato
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova198: Maggiore frequenza: range minimo 0.05 ATR, rischio 0.75%
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova188: ORB continuazione, uscite 3R, senza BE e senza piramide
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova186: Prova185 con break-even allineato alla griglia tick e verifica distanza minima del contratto crypto
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+// prova185: Adattamento iniziale di prova130 alle crypto, sette giorni su sette
+// Ricerca crypto; non attivato sul conto. Ore delle sessioni in tempo server.
+//+------------------------------------------------------------------+
+//|                              Tri_Session_Master_v5.5_Fade.mq5    |
+//|                   Logic: London/NY/Asia ORB - Sniper Filters     |
+//|                   + FADE dei falsi breakout + gestione dinamica  |
+//|                                                                    |
+//|   v5.5 NOVITA':                                                   |
+//|    - LONDON_FADE RIMOSSA: se il breakout su Londra ha corpo       |
+//|      debole, non si apre nessun trade fade. La continuazione     |
+//|      resta invariata. NY e Asia mantengono la fade come prima.   |
+//+------------------------------------------------------------------+
+#property copyright "Tri-Session Master v5.5 Fade"
+#property version   "5.50"
+#property strict
+
+#include <Trade\Trade.mqh>
+
+// ═══════════════════════════════════════════
+// 📥 INPUTS
+// ═══════════════════════════════════════════
+input group "London Session (ORB)"
+input int      InpLon_StartHour     = 10;
+input int      InpLon_StartMin      = 0;
+input int      InpLon_DurationMin   = 60;
+input bool     InpLon_UseDailyFilter= true;
+input bool     InpLon_IgnoreBias    = true;
+
+input group "New York Session (ORB)"
+input int      InpNY_StartHour      = 16;
+input int      InpNY_StartMin       = 30;
+input int      InpNY_DurationMin    = 30;
+input bool     InpNY_UseDailyFilter = false;
+
+input group "Asian Session (ORB)"
+input bool     InpUseAsia            = true;
+input int      InpAsia_StartHour     = 3;
+input int      InpAsia_StartMin      = 0;
+input int      InpAsia_DurationMin   = 60;
+input bool     InpAsia_UseDailyFilter= false;
+
+input group "Sniper Filters (Crucial)"
+input ENUM_TIMEFRAMES InpEntryTF    = PERIOD_M5;
+input int      InpMaxEntryDelayMin  = 360;
+input double   InpBodyFilterPct     = 50.0;
+
+input group "Fade dei Falsi Breakout (NON si applica a LONDON)"
+input bool     InpFadeEnabled       = false;
+input double   InpFadeRiskPct       = 50.0;
+input double   InpFadeSLBufferPoints= 30;
+
+input double InpATRMinRangeMultAsia = 0.05;
+input double InpATRMinRangeMultNY = 0.05;
+
+input group "Volatility Filter"
+input bool     InpUseATRFilter      = true;
+input int      InpATRPeriod         = 14;
+input double   InpATRMinRangeMult   = 0.05;
+
+input group "Break-Even & Partial Close"
+input bool     InpUseBreakEven      = false;
+input double   InpBreakEvenTriggerR = 1.0;
+input double   InpBreakEvenLockR    = 0.1;
+input bool     InpUsePartialClose   = false;
+input double   InpPartialClosePct   = 50.0;
+input double   InpPartialCloseAtR   = 1.0;
+
+input group "Risk & Money Management"
+input double   InpFixedRiskAmount   = 80.0;
+input bool     InpUseEquityRisk     = true;
+input double   InpRiskPercent       = 1.0;
+input double   InpRR_Target         = 10.0;
+input int      InpMaxLossesDay      = 3;
+input int      InpMaxTradesDay      = 6;
+input ulong    InpMagicNumber       = 20261010387;
+input bool     InpShowComments      = false;
+
+input group "Daily Loss Control"
+input bool     InpUseEquityDailyLock = true;
+input double   InpMaxDailyLossPct    = 3.0;
+
+// ═══════════════════════════════════════════
+// 🧠 GLOBALS
+// ══════════════════════════════════════════
+input double InpPyramidAtR=1.2;
+input double InpPyramidRiskPercent=0.0;
+input double InpPyramidExtraTargetR=1.0;
+input double InpTotalOpenStopRiskPct=3.5;
+double g_profitPyramid=0; int g_winsPyramid=0,g_totalPyramid=0;
+input double InpAsiaRiskMultiplier=1.0;
+input double InpNYRiskMultiplier=1.0;
+input double InpLondonRiskMultiplier=1.0;
+input group "Crypto: operativita e costo dello spread"
+input bool InpTradeWeekend=true;
+input double InpMaxSpreadToStopPct=10.0;
+input bool InpRequireWeekendSessions=true;
+bool g_lonLoaded=false,g_nyLoaded=false,g_asiaLoaded=false;
+input group "Crypto: durata, direzione e rischio aggregato"
+input double InpCryptoMaxHoldHours=0.0;
+input bool InpCryptoAllowLong=true;
+input bool InpCryptoAllowShort=true;
+input double InpCryptoLongRiskMult=1.0;
+input double InpCryptoShortRiskMult=1.0;
+input double InpCryptoMaxStopATR=0.0;
+input int InpCryptoMaxPositions=1;
+input bool InpCryptoInitializeDailyBias=false;
+input double InpCryptoWeekendRiskMult=0.75;
+CTrade trade;
+int    g_atrHandle = INVALID_HANDLE;
+
+double g_lonHigh = 0.0, g_lonLow = 999999.0;
+bool   g_lonRangeDefined = false;
+bool   g_lonExecutedToday = false;
+
+double g_nyHigh = 0.0, g_nyLow = 999999.0;
+bool   g_nyRangeDefined = false;
+bool   g_nyExecutedToday = false;
+
+double g_asiaHigh = 0.0, g_asiaLow = 999999.0;
+bool   g_asiaRangeDefined = false;
+bool   g_asiaExecutedToday = false;
+
+int    g_dailyBias = 0;
+double g_daily_swing_highs[];
+double g_daily_swing_lows[];
+int    InpSwingLen_Daily = 5;
+
+datetime g_currentDay = 0;
+double   g_dayStartEquity = 0.0;
+int      g_tradesToday = 0;
+int      g_lossesToday = 0;
+bool     g_dayLocked = false;
+long     g_countedLossIds[];
+
+struct SessionMap { long posId; string session; double entryPrice; double slDistance; int dir; bool beDone; bool partialDone; bool pyramidDone; };
+SessionMap g_posSessionMap[];
+
+// Stats continuazione
+double g_profitLon = 0, g_profitNY = 0, g_profitAsia = 0;
+int    g_winsLon = 0, g_winsNY = 0, g_winsAsia = 0;
+int    g_totalLon = 0, g_totalNY = 0, g_totalAsia = 0;
+
+// Stats fade (NY/Asia soltanto)
+double g_profitNYFade = 0, g_profitAsiaFade = 0;
+int    g_winsNYFade = 0, g_winsAsiaFade = 0;
+int    g_totalNYFade = 0, g_totalAsiaFade = 0;
+
+// Stats reversal - doppio fakeout (NY soltanto, Londra non ha piu' fade quindi non arma mai il reversal)
+double g_profitNYRev = 0;
+int    g_winsNYRev = 0;
+int    g_totalNYRev = 0;
+
+// Stato per il rientro reversal dopo stop della fade (NY)
+int      g_nyFadeDir = 0;    double g_nyFadeSL = 0;
+bool     g_nyReArmActive = false;  datetime g_nyReArmDeadline = 0;
+
+// ═══════════════════════════════════════════
+// 🚀 INIT & DEINIT
+// ══════════════════════════════════════════
+
+input group "Crypto: regime su candele concluse"
+input ENUM_TIMEFRAMES InpRegimeTF=PERIOD_H4;
+input int InpRegimeFast=12;
+input int InpRegimeSlow=36;
+input int InpRegimeSlopeBars=3;
+input int InpRegimeEfficiencyBars=20;
+input double InpRegimeMinEfficiency=0.15;
+input double InpRegimeStopATR=0.0;
+int g_regimeFast=INVALID_HANDLE,g_regimeSlow=INVALID_HANDLE,g_regimeATR=INVALID_HANDLE;
+datetime g_regimeBar=0;
+int g_regimeDirection=0;
+double g_regimeStopDistance=0;
+
+// Mai barra0 per segnali: refresh solo con buffer disponibili e barre chiuse.
+bool CryptoRegimeAllows(int direction){
+ datetime bar=iTime(_Symbol,InpRegimeTF,0);
+ if(bar<=0)return false;
+ if(bar!=g_regimeBar){
+  double fast[],slow[],atr[],closes[];
+  int nf=InpRegimeSlopeBars+1,nc=InpRegimeEfficiencyBars+1;
+  if(CopyBuffer(g_regimeFast,0,1,nf,fast)!=nf ||
+     CopyBuffer(g_regimeSlow,0,1,1,slow)!=1 ||
+     CopyBuffer(g_regimeATR,0,1,1,atr)!=1 ||
+     CopyClose(_Symbol,InpRegimeTF,1,nc,closes)!=nc)return false;
+  // CopyBuffer/CopyClose: il valore piu vecchio e' all'indice0.
+  double latest=closes[nc-1],effort=0;
+  for(int i=1;i<nc;i++)effort+=MathAbs(closes[i]-closes[i-1]);
+  double efficiency=effort>0?MathAbs(latest-closes[0])/effort:0;
+  int signal=0;
+  if(efficiency>=InpRegimeMinEfficiency && atr[0]>0){
+   if(latest>fast[nf-1] && fast[nf-1]>slow[0] && fast[nf-1]>fast[0])signal=1;
+   if(latest<fast[nf-1] && fast[nf-1]<slow[0] && fast[nf-1]<fast[0])signal=-1;
+  }
+  g_regimeDirection=signal;g_regimeStopDistance=atr[0]*InpRegimeStopATR;
+  g_regimeBar=bar;
+ }
+ return direction==g_regimeDirection;
+}
+
+
+input group "Crypto: uscita in multipli del rischio iniziale"
+input double InpTrailActivateR=4.0;
+input double InpTrailGapR=3.0;
+
+// Stop monotono: quote correnti, distanza iniziale registrata al fill.
+// Una modifica per minuto; nessun massimo futuro o candela in formazione.
+void CryptoTrailInitialRisk(){
+ if(InpTrailActivateR<=0)return;
+ static datetime checked=0;
+ datetime minute=(datetime)(TimeCurrent()/60);
+ if(minute==checked)return;
+ checked=minute;
+ MqlTick quote;if(!SymbolInfoTick(_Symbol,quote))return;
+ double grid=SymbolInfoDouble(_Symbol,SYMBOL_TRADE_TICK_SIZE);
+ double point=SymbolInfoDouble(_Symbol,SYMBOL_POINT);
+ double gap=MathMax(SymbolInfoInteger(_Symbol,SYMBOL_TRADE_STOPS_LEVEL),SymbolInfoInteger(_Symbol,SYMBOL_TRADE_FREEZE_LEVEL))*point;
+ if(grid<=0 || point<=0)return;
+ int digits=(int)SymbolInfoInteger(_Symbol,SYMBOL_DIGITS);
+ for(int p=PositionsTotal()-1;p>=0;p--){
+  ulong ticket=PositionGetTicket(p);
+  if(ticket==0 || PositionGetString(POSITION_SYMBOL)!=_Symbol || PositionGetInteger(POSITION_MAGIC)!=(long)InpMagicNumber)continue;
+  int index=FindSessionMapIndex(PositionGetInteger(POSITION_IDENTIFIER));
+  if(index<0)continue;
+  double initialRisk=g_posSessionMap[index].slDistance;
+  double entry=g_posSessionMap[index].entryPrice;
+  int dir=g_posSessionMap[index].dir;
+  double price=dir==1?quote.bid:quote.ask;
+  if(initialRisk<=0 || dir*(price-entry)<InpTrailActivateR*initialRisk)continue;
+  double stop=PositionGetDouble(POSITION_SL),target=PositionGetDouble(POSITION_TP);
+  double candidate=price-dir*InpTrailGapR*initialRisk;
+  candidate=NormalizeDouble((dir==1?MathFloor(candidate/grid):MathCeil(candidate/grid))*grid,digits);
+  if((dir==1 && (candidate<=stop || candidate>=quote.bid-gap || candidate>=target)) ||
+     (dir==-1 && ((stop>0 && candidate>=stop) || candidate<=quote.ask+gap || candidate<=target)))continue;
+  if(trade.PositionModify(ticket,candidate,target) && trade.ResultRetcode()==TRADE_RETCODE_DONE){
+   if(dir*(candidate-entry)>0)g_posSessionMap[index].beDone=true;
+  }
+ }
+}
+
+
+input group "Crypto: nuove sessioni con posizione gia protetta"
+input bool InpAllowProtectedStack=false;
+input double InpStackMinLockR=0.50;
+input double InpStackExtraRiskMultiplier=0.50;
+input double InpStaleExitHours=0.0;
+input double InpStaleMaxR=0.25;
+
+bool CryptoCanOpenSession(){
+ int count=CryptoPositionCount();
+ if(count==0)return true;
+ if(!InpAllowProtectedStack || count>=InpCryptoMaxPositions)return false;
+ for(int p=PositionsTotal()-1;p>=0;p--){
+  ulong ticket=PositionGetTicket(p);
+  if(ticket==0 || PositionGetString(POSITION_SYMBOL)!=_Symbol || PositionGetInteger(POSITION_MAGIC)!=(long)InpMagicNumber)continue;
+  int index=FindSessionMapIndex(PositionGetInteger(POSITION_IDENTIFIER));
+  if(index<0)return false;
+  int dir=g_posSessionMap[index].dir;
+  double entry=g_posSessionMap[index].entryPrice,initialRisk=g_posSessionMap[index].slDistance;
+  double stop=PositionGetDouble(POSITION_SL),locked=0;
+  if(stop<=0 || initialRisk<=0 || dir*(stop-entry)<InpStackMinLockR*initialRisk)return false;
+  if(!OrderCalcProfit(dir==1?ORDER_TYPE_BUY:ORDER_TYPE_SELL,_Symbol,PositionGetDouble(POSITION_VOLUME),entry,stop,locked) ||
+     locked+PositionGetDouble(POSITION_SWAP)<=0)return false;
+ }
+ return true;
+}
+
+bool CryptoStackDirectionAllows(int direction){
+ for(int p=PositionsTotal()-1;p>=0;p--){
+  ulong ticket=PositionGetTicket(p);
+  if(ticket==0 || PositionGetString(POSITION_SYMBOL)!=_Symbol || PositionGetInteger(POSITION_MAGIC)!=(long)InpMagicNumber)continue;
+  int dir=PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_BUY?1:-1;
+  if(direction!=dir)return false;
+ }
+ return true;
+}
+
+void CryptoExitStaleTrades(){
+ if(InpStaleExitHours<=0)return;
+ static datetime checked=0;
+ datetime minute=(datetime)(TimeCurrent()/60);if(minute==checked)return;checked=minute;
+ MqlTick quote;if(!SymbolInfoTick(_Symbol,quote))return;
+ for(int p=PositionsTotal()-1;p>=0;p--){
+  ulong ticket=PositionGetTicket(p);
+  if(ticket==0 || PositionGetString(POSITION_SYMBOL)!=_Symbol || PositionGetInteger(POSITION_MAGIC)!=(long)InpMagicNumber)continue;
+  int index=FindSessionMapIndex(PositionGetInteger(POSITION_IDENTIFIER));
+  if(index<0 || g_posSessionMap[index].slDistance<=0)continue;
+  if(TimeCurrent()-(datetime)PositionGetInteger(POSITION_TIME)<InpStaleExitHours*3600)continue;
+  int dir=g_posSessionMap[index].dir;
+  double price=dir==1?quote.bid:quote.ask;
+  double achieved=dir*(price-g_posSessionMap[index].entryPrice)/g_posSessionMap[index].slDistance;
+  // Il regimeH4 legge barre chiuse. Non chiudere un runner ancora in trend.
+  if(achieved>=InpStaleMaxR || CryptoRegimeAllows(dir))continue;
+  if(!trade.PositionClose(ticket) || (trade.ResultRetcode()!=TRADE_RETCODE_DONE && trade.ResultRetcode()!=TRADE_RETCODE_DONE_PARTIAL))
+   Print("STALE_CLOSE_REJECTED ",ticket," retcode ",trade.ResultRetcode());
+ }
+}
+
+
+input group "Crypto: qualita ingresso ORB"
+input bool InpCoreRequireLiveBreak=false;
+input double InpCoreMaxChaseRange=0.0;
+input double InpCoreMinBodyATR=0.0;
+input double InpCoreVolumeMult=1.0;
+int g_qualityATR=INVALID_HANDLE;
+int g_qualityPriceRejects=0,g_qualityBodyRejects=0,g_qualityVolumeRejects=0;
+
+bool CryptoORBQualityAllows(int direction,string session){
+ double high=0,low=0;
+ if(session=="LONDON"){high=g_lonHigh;low=g_lonLow;}
+ else if(session=="NY"){high=g_nyHigh;low=g_nyLow;}
+ else if(session=="ASIA"){high=g_asiaHigh;low=g_asiaLow;}
+ else return true;
+ if(high<=low || low<=0)return false;
+ MqlTick quote;if(!SymbolInfoTick(_Symbol,quote))return false;
+ double live=direction==1?quote.bid:quote.ask;
+ if(InpCoreRequireLiveBreak && (direction==1?live<=high:live>=low)){
+  g_qualityPriceRejects++;return false;
+ }
+ double entry=direction==1?quote.ask:quote.bid;
+ double excess=MathMax(0,direction==1?entry-high:low-entry);
+ if(InpCoreMaxChaseRange>0 && excess>(high-low)*InpCoreMaxChaseRange){
+  g_qualityPriceRejects++;return false;
+ }
+ if(InpCoreMinBodyATR<=0 && InpCoreVolumeMult<=0)return true;
+ MqlRates samples[];ArraySetAsSeries(samples,true);
+ int count=InpCoreVolumeMult>0?21:1;
+ if(CopyRates(_Symbol,InpEntryTF,1,count,samples)!=count)return false;
+ // samples0=barra1 chiusa; volume di riferimento solo barre2..21.
+ if(InpCoreMinBodyATR>0){
+  double a[];if(CopyBuffer(g_qualityATR,0,1,1,a)!=1 || a[0]<=0 || a[0]==EMPTY_VALUE)return false;
+  if(MathAbs(samples[0].close-samples[0].open)<a[0]*InpCoreMinBodyATR){g_qualityBodyRejects++;return false;}
+ }
+ if(InpCoreVolumeMult>0){
+  double average=0;for(int j=1;j<count;j++)average+=(double)samples[j].tick_volume;
+  average/=(count-1);
+  if(average<=0 || (double)samples[0].tick_volume<average*InpCoreVolumeMult){g_qualityVolumeRejects++;return false;}
+ }
+ return true;
+}
+
+int OnInit() {
+ if(InpCoreMaxChaseRange<0 || InpCoreMaxChaseRange>2 || InpCoreMinBodyATR<0 || InpCoreMinBodyATR>3 ||
+    InpCoreVolumeMult<0 || InpCoreVolumeMult>5)return INIT_PARAMETERS_INCORRECT;
+ if(InpCoreMinBodyATR>0){g_qualityATR=iATR(_Symbol,InpEntryTF,14);if(g_qualityATR==INVALID_HANDLE)return INIT_FAILED;}
+
+ if(InpStackMinLockR<=0 || InpStackExtraRiskMultiplier<=0 || InpStackExtraRiskMultiplier>1 ||
+    InpStaleExitHours<0 || InpStaleMaxR<0)return INIT_PARAMETERS_INCORRECT;
+
+ if(InpTrailActivateR<0 || InpTrailGapR<=0 ||
+    (InpTrailActivateR>0 && InpTrailGapR>=InpTrailActivateR))return INIT_PARAMETERS_INCORRECT;
+
+ if(InpRegimeFast<2 || InpRegimeSlow<=InpRegimeFast || InpRegimeSlopeBars<1 ||
+    InpRegimeEfficiencyBars<2 || InpRegimeMinEfficiency<0 || InpRegimeMinEfficiency>1 ||
+    InpRegimeStopATR<0 || (InpRegimeTF!=PERIOD_H1 && InpRegimeTF!=PERIOD_H4))return INIT_PARAMETERS_INCORRECT;
+ g_regimeFast=iMA(_Symbol,InpRegimeTF,InpRegimeFast,0,MODE_EMA,PRICE_CLOSE);
+ g_regimeSlow=iMA(_Symbol,InpRegimeTF,InpRegimeSlow,0,MODE_EMA,PRICE_CLOSE);
+ g_regimeATR=iATR(_Symbol,InpRegimeTF,14);
+ if(g_regimeFast==INVALID_HANDLE || g_regimeSlow==INVALID_HANDLE || g_regimeATR==INVALID_HANDLE)return INIT_FAILED;
+
+    if(InpCryptoWeekendRiskMult<0 || InpCryptoWeekendRiskMult>1)return INIT_PARAMETERS_INCORRECT;
+    if(InpCryptoMaxHoldHours<0 || InpCryptoMaxPositions<1 || InpCryptoMaxStopATR<0 || InpCryptoLongRiskMult<0 || InpCryptoShortRiskMult<0)return INIT_PARAMETERS_INCORRECT;
+    if(InpCryptoMaxPositions>1 && AccountInfoInteger(ACCOUNT_MARGIN_MODE)!=ACCOUNT_MARGIN_MODE_RETAIL_HEDGING)return INIT_PARAMETERS_INCORRECT;
+    if(InpRequireWeekendSessions) {
+        datetime from,to;
+        if(!SymbolInfoSessionTrade(_Symbol,SATURDAY,0,from,to) || !SymbolInfoSessionTrade(_Symbol,SUNDAY,0,from,to)) {
+            Print("CRYPTO_INIT_FAILED: il simbolo non ha sessioni sia sabato sia domenica: ",_Symbol);
+            return INIT_PARAMETERS_INCORRECT;
+        }
+    }
+    trade.SetExpertMagicNumber(InpMagicNumber);
+    trade.SetDeviationInPoints(20);
+    trade.SetTypeFillingBySymbol(_Symbol);
+
+    ArrayResize(g_daily_swing_highs, 0);
+    ArrayResize(g_daily_swing_lows, 0);
+    ArrayResize(g_countedLossIds, 0);
+    ArrayResize(g_posSessionMap, 0);
+
+    g_atrHandle = iATR(_Symbol, PERIOD_D1, InpATRPeriod);
+    if(g_atrHandle == INVALID_HANDLE) Print("ATTENZIONE: impossibile creare handle ATR, filtro volatilità disattivato di fatto.");
+
+    MqlDateTime dtInit;
+    TimeCurrent(dtInit);
+    g_currentDay = StringToTime(StringFormat("%04d.%02d.%02d", dtInit.year, dtInit.mon, dtInit.day));
+    g_dayStartEquity = AccountInfoDouble(ACCOUNT_EQUITY);
+
+    RestoreDailyStats();
+    Print("Tri-Session Master v5.5 (Londra senza fade) Ready.");
+    return(INIT_SUCCEEDED);
+}
+
+void OnDeinit(const int reason) {
+ if(g_qualityATR!=INVALID_HANDLE)IndicatorRelease(g_qualityATR);
+ Print("ORB_QUALITY_DIAGNOSTIC priceRejects=",g_qualityPriceRejects," bodyRejects=",g_qualityBodyRejects,
+       " volumeRejects=",g_qualityVolumeRejects);
+
+ if(g_regimeFast!=INVALID_HANDLE)IndicatorRelease(g_regimeFast);
+ if(g_regimeSlow!=INVALID_HANDLE)IndicatorRelease(g_regimeSlow);
+ if(g_regimeATR!=INVALID_HANDLE)IndicatorRelease(g_regimeATR);
+
+    PrintFinalReport();
+    if(g_atrHandle != INVALID_HANDLE) IndicatorRelease(g_atrHandle);
+    Comment("");
+}
+
+// ═══════════════════════════════════════════
+// 🔧 UTILS & STATS
+// ═══════════════════════════════════════════
+void AddToArray(double &arr[], double val) { int s=ArraySize(arr); ArrayResize(arr,s+1); arr[s]=val; }
+void ShiftArray(double &arr[]) {
+    if(ArraySize(arr)<=1){ArrayResize(arr,0);return;}
+    for(int i=0;i<ArraySize(arr)-1;i++) arr[i]=arr[i+1];
+    ArrayResize(arr,ArraySize(arr)-1);
+}
+void AddToLongArray(long &arr[], long val) { int s=ArraySize(arr); ArrayResize(arr,s+1); arr[s]=val; }
+
+double GetRiskAmount() {
+    if(InpUseEquityRisk) return AccountInfoDouble(ACCOUNT_EQUITY) * (InpRiskPercent/100.0);
+    return InpFixedRiskAmount;
+}
+
+double GetATRValue() {
+    if(g_atrHandle == INVALID_HANDLE) return -1;
+    double buf[];
+    ArraySetAsSeries(buf, true);
+    if(CopyBuffer(g_atrHandle, 0, 1, 1, buf) <= 0) return -1;
+    return buf[0];
+}
+
+void RegisterPosition(long posId, string session, double entryPrice, double slDistance, int dir) {
+    for(int i=ArraySize(g_posSessionMap)-1; i>=0; i--) if(g_posSessionMap[i].posId == posId) ArrayRemove(g_posSessionMap, i, 1);
+    int s = ArraySize(g_posSessionMap); ArrayResize(g_posSessionMap, s+1);
+    g_posSessionMap[s].posId = posId;
+    g_posSessionMap[s].session = session;
+    g_posSessionMap[s].entryPrice = entryPrice;
+    g_posSessionMap[s].slDistance = slDistance;
+    g_posSessionMap[s].dir = dir;
+    g_posSessionMap[s].beDone = false;
+    g_posSessionMap[s].partialDone = false;
+    g_posSessionMap[s].pyramidDone = false;
+}
+
+string GetSessionByPosId(long posId) {
+    for(int i=0; i<ArraySize(g_posSessionMap); i++) if(g_posSessionMap[i].posId == posId) return g_posSessionMap[i].session;
+    return "UNKNOWN";
+}
+
+int FindSessionMapIndex(long posId) {
+    for(int i=0; i<ArraySize(g_posSessionMap); i++) if(g_posSessionMap[i].posId == posId) return i;
+    return -1;
+}
+
+void UnregisterPosition(long posId) {
+    for(int i=ArraySize(g_posSessionMap)-1; i>=0; i--) if(g_posSessionMap[i].posId == posId) { ArrayRemove(g_posSessionMap, i, 1); return; }
+}
+
+bool IsIdAlreadyCounted(long posId) {
+    for(int i=0; i<ArraySize(g_countedLossIds); i++) if(g_countedLossIds[i] == posId) return true;
+    return false;
+}
+
+bool HasOpenPosition() {
+    for(int i=PositionsTotal()-1; i>=0; i--) {
+        ulong ticket = PositionGetTicket(i);
+        if(ticket > 0 && PositionGetString(POSITION_SYMBOL) == _Symbol && PositionGetInteger(POSITION_MAGIC) == (long)InpMagicNumber) return true;
+    }
+    return false;
+}
+
+double GetPivot(ENUM_TIMEFRAMES tf, int len, int shift, bool isHigh) {
+    double val = isHigh ? iHigh(_Symbol, tf, shift) : iLow(_Symbol, tf, shift);
+    for(int i=1; i<=len; i++) {
+        double c1 = isHigh ? iHigh(_Symbol, tf, shift+i) : iLow(_Symbol, tf, shift+i);
+        double c2 = isHigh ? iHigh(_Symbol, tf, shift-i) : iLow(_Symbol, tf, shift-i);
+        if((isHigh && (c1 >= val || c2 >= val)) || (!isHigh && (c1 <= val || c2 <= val))) return EMPTY_VALUE;
+    }
+    return val;
+}
+
+int GetDailyBias() {
+    if(ArraySize(g_daily_swing_highs) < 2 || ArraySize(g_daily_swing_lows) < 2) return 0;
+    double lastHH = g_daily_swing_highs[ArraySize(g_daily_swing_highs)-1];
+    double prevHH = g_daily_swing_highs[ArraySize(g_daily_swing_highs)-2];
+    double lastLL = g_daily_swing_lows[ArraySize(g_daily_swing_lows)-1];
+    double prevLL = g_daily_swing_lows[ArraySize(g_daily_swing_lows)-2];
+    double close = iClose(_Symbol, PERIOD_D1, 1);
+    if(close > lastHH || (lastHH > prevHH && lastLL > prevLL)) return 1;
+    if(close < lastLL || (lastHH < prevHH && lastLL < prevLL)) return -1;
+    return 0;
+}
+
+void RestoreDailyStats() {
+    datetime todayStart = StringToTime(TimeToString(TimeCurrent(), TIME_DATE));
+    g_tradesToday = 0; g_lossesToday = 0; g_dayLocked = false;
+    ArrayResize(g_countedLossIds, 0);
+    if(!HistorySelect(todayStart, TimeCurrent())) return;
+    int totalDeals = HistoryDealsTotal();
+    for(int i=0; i<totalDeals; i++) {
+        ulong ticket = HistoryDealGetTicket(i);
+        if(HistoryDealGetInteger(ticket, DEAL_MAGIC) != (long)InpMagicNumber) continue;
+        if(HistoryDealGetString(ticket, DEAL_SYMBOL) != _Symbol) continue;
+        if(HistoryDealGetInteger(ticket, DEAL_ENTRY) == DEAL_ENTRY_IN) g_tradesToday++;
+        if(HistoryDealGetInteger(ticket, DEAL_ENTRY) == DEAL_ENTRY_OUT) {
+            long posId = HistoryDealGetInteger(ticket, DEAL_POSITION_ID);
+            double profit = HistoryDealGetDouble(ticket, DEAL_PROFIT) + HistoryDealGetDouble(ticket, DEAL_SWAP) + HistoryDealGetDouble(ticket, DEAL_COMMISSION);
+            bool stillOpen = false;
+            for(int p=PositionsTotal()-1; p>=0; p--) if(PositionGetTicket(p)>0 && PositionGetInteger(POSITION_IDENTIFIER) == posId) stillOpen = true;
+            if(!stillOpen && profit < 0 && !IsIdAlreadyCounted(posId)) { g_lossesToday++; AddToLongArray(g_countedLossIds, posId); }
+        }
+    }
+    if(g_lossesToday >= InpMaxLossesDay) g_dayLocked = true;
+}
+
+void PrintSessionStats(string name, double prof, int wins, int total) {
+    double wr = (total > 0) ? (double)wins / total * 100.0 : 0.0;
+    Print(name, " | Profit: ", DoubleToString(prof, 2), " | Wins: ", IntegerToString(wins), "/", IntegerToString(total), " | WR: ", DoubleToString(wr, 1), "%");
+}
+
+void PrintFinalReport() {
+    Print("--------------------------------------------------");
+    Print("TRI-SESSION MASTER v5.5 (LONDON NO-FADE) - FINAL REPORT");
+    Print("--------------------------------------------------");
+    Print("--- Continuazione ---");
+    PrintSessionStats("LONDON      ", g_profitLon, g_winsLon, g_totalLon);
+    PrintSessionStats("NY          ", g_profitNY, g_winsNY, g_totalNY);
+    PrintSessionStats("ASIA        ", g_profitAsia, g_winsAsia, g_totalAsia);
+    Print("--- Fade Falsi Breakout (solo NY/Asia) ---");
+    PrintSessionStats("NY_FADE     ", g_profitNYFade, g_winsNYFade, g_totalNYFade);
+    PrintSessionStats("ASIA_FADE   ", g_profitAsiaFade, g_winsAsiaFade, g_totalAsiaFade);
+    Print("--- Reversal dopo stop fade (solo NY) ---");
+    PrintSessionStats("NY_REV      ", g_profitNYRev, g_winsNYRev, g_totalNYRev);
+    PrintSessionStats("PYRAMID",g_profitPyramid,g_winsPyramid,g_totalPyramid);
+    Print("--- Totale ---");
+    double totProfit = g_profitLon + g_profitNY + g_profitAsia + g_profitNYFade + g_profitAsiaFade + g_profitNYRev + g_profitPyramid;
+    int totWins = g_winsLon + g_winsNY + g_winsAsia + g_winsNYFade + g_winsAsiaFade + g_winsNYRev + g_winsPyramid;
+    int totTrades = g_totalLon + g_totalNY + g_totalAsia + g_totalNYFade + g_totalAsiaFade + g_totalNYRev + g_totalPyramid;
+    PrintSessionStats("TOTALE      ", totProfit, totWins, totTrades);
+    Print("--------------------------------------------------");
+}
+
+// ══════════════════════════════════════════
+// 🎯 GESTIONE DINAMICA POSIZIONI
+// ══════════════════════════════════════════
+void ManageOpenPositions() {
+    int digits = (int)SymbolInfoInteger(_Symbol, SYMBOL_DIGITS);
+
+    for(int i=PositionsTotal()-1; i>=0; i--) {
+        ulong ticket = PositionGetTicket(i);
+        if(ticket == 0) continue;
+        if(PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+        if(PositionGetInteger(POSITION_MAGIC) != (long)InpMagicNumber) continue;
+
+        long posId = (long)PositionGetInteger(POSITION_IDENTIFIER);
+        int idx = FindSessionMapIndex(posId);
+        if(idx < 0) continue;
+
+        double entry  = g_posSessionMap[idx].entryPrice;
+        double slDist = g_posSessionMap[idx].slDistance;
+        int    dir    = g_posSessionMap[idx].dir;
+        if(slDist <= 0) continue;
+
+        double currentPrice = (dir == 1) ? SymbolInfoDouble(_Symbol, SYMBOL_BID) : SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+        double rMultiple = (dir == 1) ? (currentPrice - entry) / slDist : (entry - currentPrice) / slDist;
+
+        double volume    = PositionGetDouble(POSITION_VOLUME);
+        double currentSL = PositionGetDouble(POSITION_SL);
+        double currentTP = PositionGetDouble(POSITION_TP);
+
+        // --- CHIUSURA PARZIALE ---
+        if(InpUsePartialClose && !g_posSessionMap[idx].partialDone && rMultiple >= InpPartialCloseAtR) {
+            double volMin  = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+            double volStep = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
+            double closeVol = MathFloor((volume * (InpPartialClosePct/100.0)) / volStep) * volStep;
+            if(closeVol >= volMin && closeVol < volume) {
+                if(trade.PositionClosePartial(ticket, closeVol) && (trade.ResultRetcode()==TRADE_RETCODE_DONE || trade.ResultRetcode()==TRADE_RETCODE_DONE_PARTIAL)) {
+                    g_posSessionMap[idx].partialDone = true;
+                    Print("PARTIAL CLOSE: ", g_posSessionMap[idx].session, " | PosID: ", posId, " | Vol: ", DoubleToString(closeVol,2), " @ R=", DoubleToString(rMultiple,2));
+                }
+            } else {
+                g_posSessionMap[idx].partialDone = true;
+            }
+        }
+
+        // --- BREAK-EVEN ---
+        if(InpUseBreakEven && !g_posSessionMap[idx].beDone && rMultiple >= InpBreakEvenTriggerR) {
+            double beSL = (dir == 1) ? entry + (InpBreakEvenLockR * slDist) : entry - (InpBreakEvenLockR * slDist);
+            double grid=SymbolInfoDouble(_Symbol,SYMBOL_TRADE_TICK_SIZE);
+            if(grid<=0) continue;
+            beSL=NormalizeDouble((dir==1?MathFloor(beSL/grid):MathCeil(beSL/grid))*grid,digits);
+            MqlTick live; if(!SymbolInfoTick(_Symbol,live)) continue;
+            double minGap=MathMax(SymbolInfoInteger(_Symbol,SYMBOL_TRADE_STOPS_LEVEL),SymbolInfoInteger(_Symbol,SYMBOL_TRADE_FREEZE_LEVEL))*SymbolInfoDouble(_Symbol,SYMBOL_POINT);
+            if((dir==1 && beSL>=live.bid-minGap) || (dir==-1 && beSL<=live.ask+minGap)) continue;
+            bool improves = (dir == 1) ? (beSL > currentSL) : (currentSL == 0 || beSL < currentSL);
+            if(improves) {
+                if(trade.PositionModify(ticket, beSL, currentTP) && trade.ResultRetcode()==TRADE_RETCODE_DONE) {
+                    g_posSessionMap[idx].beDone = true;
+                    Print("BREAK-EVEN: ", g_posSessionMap[idx].session, " | PosID: ", posId, " | Nuovo SL: ", DoubleToString(beSL,digits));
+                }
+            }
+        }
+    }
+}
+
+// ══════════════════════════════════════════
+// 🔄 MAIN LOGIC
+// ═══════════════════════════════════════════
+// Un solo incremento su una posizione originale gia protetta; nessuna media in perdita.
+void ManagePyramids() {
+    static datetime checkedBar=0;
+    datetime bar=iTime(_Symbol,PERIOD_M1,0);
+    if(bar==checkedBar) return;
+    checkedBar=bar;
+    if(AccountInfoInteger(ACCOUNT_MARGIN_MODE)!=ACCOUNT_MARGIN_MODE_RETAIL_HEDGING || g_dayLocked || g_tradesToday>=InpMaxTradesDay) return;
+    MqlTick tick; if(!SymbolInfoTick(_Symbol,tick)) return;
+    int ownCount=0; double existingStopRisk=0;
+    for(int p=PositionsTotal()-1;p>=0;p--) {
+        ulong t=PositionGetTicket(p);
+        if(t==0 || PositionGetString(POSITION_SYMBOL)!=_Symbol || PositionGetInteger(POSITION_MAGIC)!=(long)InpMagicNumber) continue;
+        ownCount++;
+        int dir=PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_BUY?1:-1;
+        double stop=PositionGetDouble(POSITION_SL),price=dir==1?tick.bid:tick.ask,pnl=0;
+        if(stop<=0) return;
+        if(!OrderCalcProfit(dir==1?ORDER_TYPE_BUY:ORDER_TYPE_SELL,_Symbol,PositionGetDouble(POSITION_VOLUME),price,stop,pnl)) return;
+        existingStopRisk+=MathMax(0,-pnl);
+    }
+    if(ownCount!=1) return;
+    double equity=AccountInfoDouble(ACCOUNT_EQUITY);
+    double budget=MathMin(equity*InpPyramidRiskPercent/100.0,equity*InpTotalOpenStopRiskPct/100.0-existingStopRisk);
+    if(budget<=0) return;
+    for(int p=PositionsTotal()-1;p>=0;p--) {
+        ulong t=PositionGetTicket(p);
+        if(t==0 || PositionGetString(POSITION_SYMBOL)!=_Symbol || PositionGetInteger(POSITION_MAGIC)!=(long)InpMagicNumber) continue;
+        long id=PositionGetInteger(POSITION_IDENTIFIER);
+        int idx=FindSessionMapIndex(id);
+        if(idx<0 || g_posSessionMap[idx].pyramidDone || !g_posSessionMap[idx].beDone || StringFind(g_posSessionMap[idx].session,"FADE")>=0 || g_posSessionMap[idx].session=="PYRAMID") continue;
+        int dir=g_posSessionMap[idx].dir;
+        double entry=g_posSessionMap[idx].entryPrice,distance=g_posSessionMap[idx].slDistance;
+        double price=dir==1?tick.bid:tick.ask;
+        double achieved=dir==1?price-entry:entry-price;
+        double stop=PositionGetDouble(POSITION_SL),target=PositionGetDouble(POSITION_TP);
+        if(distance<=0 || achieved<InpPyramidAtR*distance || (dir==1 && stop<=entry) || (dir==-1 && stop>=entry)) continue;
+        target+=dir*distance*InpPyramidExtraTargetR;
+        int previous=g_tradesToday;
+        ExecuteTrade(dir,dir==1?tick.ask:tick.bid,stop,"PYRAMID",budget,target);
+        idx=FindSessionMapIndex(id);
+        if(idx>=0 && g_tradesToday>previous) g_posSessionMap[idx].pyramidDone=true;
+        return;
+    }
+}
+
+// Range esatto delle M1 concluse: non include la candela precedente alla finestra.
+void LoadCryptoORB(datetime start,int minutes,bool &loaded,bool &rangeDefined,double &high,double &low) {
+    if(loaded || minutes<=0 || TimeCurrent()<start+minutes*60) return;
+    MqlRates bars[];
+    int n=CopyRates(_Symbol,PERIOD_M1,start,start+minutes*60-1,bars);
+    if(n<=0) return;
+    double h=-DBL_MAX,l=DBL_MAX;
+    for(int i=0;i<n;i++){h=MathMax(h,bars[i].high);l=MathMin(l,bars[i].low);}
+    if(h<=l || l<=0) return;
+    high=h;low=l;rangeDefined=true;loaded=true;
+}
+
+
+int CryptoPositionCount(){
+ int n=0;for(int p=PositionsTotal()-1;p>=0;p--){
+  ulong ticket=PositionGetTicket(p);
+  if(ticket>0 && PositionGetString(POSITION_SYMBOL)==_Symbol && PositionGetInteger(POSITION_MAGIC)==(long)InpMagicNumber)n++;
+ }return n;
+}
+bool CryptoSessionOpen(string session){
+ for(int p=PositionsTotal()-1;p>=0;p--){
+  ulong ticket=PositionGetTicket(p);
+  if(ticket>0 && PositionGetString(POSITION_SYMBOL)==_Symbol && PositionGetInteger(POSITION_MAGIC)==(long)InpMagicNumber && StringFind(PositionGetString(POSITION_COMMENT),session+"|")==0)return true;
+ }return false;
+}
+double CryptoOpenStopRisk(){
+ MqlTick quote;if(!SymbolInfoTick(_Symbol,quote))return DBL_MAX;
+ double total=0;
+ for(int p=PositionsTotal()-1;p>=0;p--){
+  ulong ticket=PositionGetTicket(p);
+  if(ticket==0 || PositionGetString(POSITION_SYMBOL)!=_Symbol || PositionGetInteger(POSITION_MAGIC)!=(long)InpMagicNumber)continue;
+  bool buy=PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_BUY;
+  double stop=PositionGetDouble(POSITION_SL),pnl=0;
+  if(stop<=0 || !OrderCalcProfit(buy?ORDER_TYPE_BUY:ORDER_TYPE_SELL,_Symbol,PositionGetDouble(POSITION_VOLUME),buy?quote.bid:quote.ask,stop,pnl))return DBL_MAX;
+  total+=MathMax(0,-pnl);
+ }return total;
+}
+void CryptoExpirePositions(){
+ if(InpCryptoMaxHoldHours<=0)return;
+ static datetime lastMinute=0;
+ datetime minute=(datetime)(TimeCurrent()/60);if(minute==lastMinute)return;lastMinute=minute;
+ for(int p=PositionsTotal()-1;p>=0;p--){
+  ulong ticket=PositionGetTicket(p);
+  if(ticket==0 || PositionGetString(POSITION_SYMBOL)!=_Symbol || PositionGetInteger(POSITION_MAGIC)!=(long)InpMagicNumber)continue;
+  if(TimeCurrent()-(datetime)PositionGetInteger(POSITION_TIME)>=InpCryptoMaxHoldHours*3600){
+   if(!trade.PositionClose(ticket) || (trade.ResultRetcode()!=TRADE_RETCODE_DONE && trade.ResultRetcode()!=TRADE_RETCODE_DONE_PARTIAL))Print("CRYPTO_CLOSE_FAILED ",ticket," retcode ",trade.ResultRetcode());
+  }
+ }
+}
+void CryptoWarmDailyBias(){
+ if(!InpCryptoInitializeDailyBias)return;
+ ArrayResize(g_daily_swing_highs,0);ArrayResize(g_daily_swing_lows,0);
+ int oldest=MathMin(300,Bars(_Symbol,PERIOD_D1)-InpSwingLen_Daily-1);
+ for(int shift=oldest;shift>=InpSwingLen_Daily+1;shift--){
+  double high=GetPivot(PERIOD_D1,InpSwingLen_Daily,shift,true),low=GetPivot(PERIOD_D1,InpSwingLen_Daily,shift,false);
+  if(high!=EMPTY_VALUE){AddToArray(g_daily_swing_highs,high);if(ArraySize(g_daily_swing_highs)>10)ShiftArray(g_daily_swing_highs);}
+  if(low!=EMPTY_VALUE){AddToArray(g_daily_swing_lows,low);if(ArraySize(g_daily_swing_lows)>10)ShiftArray(g_daily_swing_lows);}
+ }g_dailyBias=GetDailyBias();
+}
+
+void OnTick() {
+    CryptoExpirePositions();
+    CryptoExitStaleTrades();
+    ManageOpenPositions();
+    CryptoTrailInitialRisk();
+
+    static datetime lastBarTime = 0;
+    datetime currentBarTime = iTime(_Symbol, PERIOD_M1, 0);
+    if(currentBarTime == lastBarTime) return;
+    lastBarTime = currentBarTime;
+
+    MqlDateTime dt; TimeCurrent(dt);
+    datetime today = StringToTime(StringFormat("%04d.%02d.%02d", dt.year, dt.mon, dt.day));
+
+    if(today != g_currentDay) {
+        g_currentDay = today;
+        g_dayStartEquity = AccountInfoDouble(ACCOUNT_EQUITY);
+        g_tradesToday = 0; g_lossesToday = 0; g_dayLocked = false;
+        g_lonLoaded=false;g_nyLoaded=false;g_asiaLoaded=false;
+        g_lonRangeDefined = false; g_nyRangeDefined = false; g_asiaRangeDefined = false;
+        g_lonExecutedToday = false; g_nyExecutedToday = false; g_asiaExecutedToday = false;
+        g_lonHigh = 0.0; g_lonLow = 999999.0;
+        g_nyHigh = 0.0; g_nyLow = 999999.0;
+        g_asiaHigh = 0.0; g_asiaLow = 999999.0;
+        g_nyReArmActive = false;
+        ArrayResize(g_daily_swing_highs, 0); ArrayResize(g_daily_swing_lows, 0);
+        CryptoWarmDailyBias();
+        ArrayResize(g_countedLossIds, 0);
+    }
+
+    if(InpUseEquityDailyLock && g_dayStartEquity > 0) {
+        double eq = AccountInfoDouble(ACCOUNT_EQUITY);
+        double lossPct = (g_dayStartEquity - eq) / g_dayStartEquity * 100.0;
+        if(lossPct >= InpMaxDailyLossPct) g_dayLocked = true;
+    }
+
+    if(!InpTradeWeekend && (dt.day_of_week==0 || dt.day_of_week==6)) return;
+    LoadCryptoORB(today+InpLon_StartHour*3600+InpLon_StartMin*60,InpLon_DurationMin,g_lonLoaded,g_lonRangeDefined,g_lonHigh,g_lonLow);
+    LoadCryptoORB(today+InpNY_StartHour*3600+InpNY_StartMin*60,InpNY_DurationMin,g_nyLoaded,g_nyRangeDefined,g_nyHigh,g_nyLow);
+    if(InpUseAsia) LoadCryptoORB(today+InpAsia_StartHour*3600+InpAsia_StartMin*60,InpAsia_DurationMin,g_asiaLoaded,g_asiaRangeDefined,g_asiaHigh,g_asiaLow);
+    ManagePyramids();
+    if(g_dayLocked) { if(InpShowComments) Comment("STOP TRADING: Max Losses / Daily Loss Limit Reached"); return; }
+    if(g_tradesToday >= InpMaxTradesDay) return;
+    if(!CryptoCanOpenSession()) return;
+
+    static datetime lastD1 = 0;
+    if(iTime(_Symbol, PERIOD_D1, 0) != lastD1) {
+        lastD1 = iTime(_Symbol, PERIOD_D1, 0);
+        double ph = GetPivot(PERIOD_D1, InpSwingLen_Daily, InpSwingLen_Daily+1, true);
+        double pl = GetPivot(PERIOD_D1, InpSwingLen_Daily, InpSwingLen_Daily+1, false);
+        if(ph != EMPTY_VALUE) { AddToArray(g_daily_swing_highs, ph); if(ArraySize(g_daily_swing_highs)>10) ShiftArray(g_daily_swing_highs); }
+        if(pl != EMPTY_VALUE) { AddToArray(g_daily_swing_lows, pl); if(ArraySize(g_daily_swing_lows)>10) ShiftArray(g_daily_swing_lows); }
+        g_dailyBias = GetDailyBias();
+    }
+
+    double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+
+    // Gestione rientro REVERSAL dopo stop di una fade (solo NY; Londra non apre piu' fade)
+    if(g_nyReArmActive) {
+        if(TimeCurrent() > g_nyReArmDeadline) {
+            g_nyReArmActive = false;
+        } else if(!HasOpenPosition()) {
+            double price = (g_nyFadeDir == -1) ? SymbolInfoDouble(_Symbol, SYMBOL_ASK) : SymbolInfoDouble(_Symbol, SYMBOL_BID);
+            int revDir = -g_nyFadeDir;
+            double sl = g_nyFadeSL;
+            ExecuteTrade(revDir, price, sl, "NY_REVERSAL", GetRiskAmount(), 0);
+            g_nyReArmActive = false;
+        }
+    }
+
+    // --- LONDON SESSION LOGIC (v5.5: SENZA FADE) ---
+    datetime lonStart = StringToTime(StringFormat("%04d.%02d.%02d %02d:%02d", dt.year, dt.mon, dt.day, InpLon_StartHour, InpLon_StartMin));
+    datetime lonEnd   = lonStart + (InpLon_DurationMin * 60);
+    datetime lonScanLimit = lonEnd + (InpMaxEntryDelayMin * 60);
+
+    if(!g_lonExecutedToday && TimeCurrent() >= lonStart) {
+        if(TimeCurrent() < lonEnd) {
+            double h = iHigh(_Symbol, PERIOD_M1, 1);
+            double l = iLow(_Symbol, PERIOD_M1, 1);
+            if(h > g_lonHigh) g_lonHigh = h;
+            if(l < g_lonLow) g_lonLow = l;
+            g_lonRangeDefined = true;
+        } else if(TimeCurrent() < lonScanLimit && g_lonRangeDefined) {
+
+            bool atrOkLon = true;
+            if(InpUseATRFilter) {
+                double atrVal = GetATRValue();
+                double sessionRange = g_lonHigh - g_lonLow;
+                if(atrVal <= 0 || sessionRange < atrVal * InpATRMinRangeMult) atrOkLon = false;
+            }
+
+            if(!atrOkLon) {
+                g_lonExecutedToday = true;
+            } else {
+                double m5_close = iClose(_Symbol, InpEntryTF, 1);
+                double m5_open  = iOpen(_Symbol, InpEntryTF, 1);
+                double m5_high  = iHigh(_Symbol, InpEntryTF, 1);
+                double m5_low   = iLow(_Symbol, InpEntryTF, 1);
+
+                double bodySize = MathAbs(m5_close - m5_open);
+                double totalSize = m5_high - m5_low;
+                bool validBody = (totalSize > 0) && ((bodySize / totalSize) * 100.0 > InpBodyFilterPct);
+
+                bool bull = (m5_close > g_lonHigh);
+                bool bear = (m5_close < g_lonLow);
+
+                if(!InpLon_IgnoreBias && InpLon_UseDailyFilter) {
+                    if(bull && g_dailyBias != 1) bull = false;
+                    if(bear && g_dailyBias != -1) bear = false;
+                }
+
+                if(bull || bear) {
+                    double riskAmt = GetRiskAmount();
+                    if(validBody) {
+                        // Continuazione: unica logica attiva su Londra
+                        if(bull) ExecuteTrade(1, m5_close, g_lonLow, "LONDON", riskAmt, 0);
+                        else if(bear) ExecuteTrade(-1, m5_close, g_lonHigh, "LONDON", riskAmt, 0);
+                    }
+                    // v5.5: RIMOSSO il ramo "else if(InpFadeEnabled)" -> Londra non apre mai
+                    // un LONDON_FADE. Se il corpo e' debole, non si fa nulla e la scansione
+                    // prosegue sulle candele successive (g_lonExecutedToday resta false,
+                    // dato che sotto viene impostato solo se una posizione risulta aperta).
+                    if(CryptoSessionOpen("LONDON")) g_lonExecutedToday = true;
+                }
+            }
+        } else if(TimeCurrent() >= lonScanLimit) {
+             g_lonExecutedToday = true;
+        }
+    }
+
+    // --- NEW YORK SESSION LOGIC (invariata, fade attiva) ---
+    datetime nyStart = StringToTime(StringFormat("%04d.%02d.%02d %02d:%02d", dt.year, dt.mon, dt.day, InpNY_StartHour, InpNY_StartMin));
+    datetime nyEnd   = nyStart + (InpNY_DurationMin * 60);
+    datetime nyScanLimit = nyEnd + (InpMaxEntryDelayMin * 60);
+
+    if(!g_nyExecutedToday && TimeCurrent() >= nyStart) {
+        if(TimeCurrent() < nyEnd) {
+            double h = iHigh(_Symbol, PERIOD_M1, 1);
+            double l = iLow(_Symbol, PERIOD_M1, 1);
+            if(h > g_nyHigh) g_nyHigh = h;
+            if(l < g_nyLow) g_nyLow = l;
+            g_nyRangeDefined = true;
+        } else if(TimeCurrent() < nyScanLimit && g_nyRangeDefined) {
+
+            bool atrOkNY = true;
+            if(InpUseATRFilter) {
+                double atrVal = GetATRValue();
+                double sessionRange = g_nyHigh - g_nyLow;
+                if(atrVal <= 0 || sessionRange < atrVal * InpATRMinRangeMultNY) atrOkNY = false;
+            }
+
+            if(!atrOkNY) {
+                g_nyExecutedToday = true;
+            } else {
+                double m5_close = iClose(_Symbol, InpEntryTF, 1);
+                double m5_open  = iOpen(_Symbol, InpEntryTF, 1);
+                double m5_high  = iHigh(_Symbol, InpEntryTF, 1);
+                double m5_low   = iLow(_Symbol, InpEntryTF, 1);
+
+                double bodySize = MathAbs(m5_close - m5_open);
+                double totalSize = m5_high - m5_low;
+                bool validBody = (totalSize > 0) && ((bodySize / totalSize) * 100.0 > InpBodyFilterPct);
+
+                bool bull = (m5_close > g_nyHigh);
+                bool bear = (m5_close < g_nyLow);
+
+                if(InpNY_UseDailyFilter) {
+                    if(bull && g_dailyBias == -1) bull = false;
+                    if(bear && g_dailyBias == 1) bear = false;
+                }
+
+                if(bull || bear) {
+                    double riskAmt = GetRiskAmount();
+                    if(validBody) {
+                        if(bull) ExecuteTrade(1, m5_close, g_nyLow, "NY", riskAmt, 0);
+                        else if(bear) ExecuteTrade(-1, m5_close, g_nyHigh, "NY", riskAmt, 0);
+                    } else if(InpFadeEnabled) {
+                        double fadeRisk = riskAmt * (InpFadeRiskPct / 100.0);
+                        double buffer = InpFadeSLBufferPoints * point;
+                        if(bull) {
+                            double sl = m5_high + buffer;
+                            g_nyFadeDir = -1; g_nyFadeSL = sl;
+                            ExecuteTrade(-1, m5_close, sl, "NY_FADE", fadeRisk, g_nyLow);
+                        } else if(bear) {
+                            double sl = m5_low - buffer;
+                            g_nyFadeDir = 1; g_nyFadeSL = sl;
+                            ExecuteTrade(1, m5_close, sl, "NY_FADE", fadeRisk, g_nyHigh);
+                        }
+                    }
+                    if(CryptoSessionOpen("NY")) g_nyExecutedToday = true;
+                }
+            }
+        } else if(TimeCurrent() >= nyScanLimit) {
+             g_nyExecutedToday = true;
+        }
+    }
+
+    // --- ASIAN SESSION LOGIC (invariata, fade attiva) ---
+    if(InpUseAsia) {
+        datetime asiaStart = StringToTime(StringFormat("%04d.%02d.%02d %02d:%02d", dt.year, dt.mon, dt.day, InpAsia_StartHour, InpAsia_StartMin));
+        datetime asiaEnd   = asiaStart + (InpAsia_DurationMin * 60);
+        datetime asiaScanLimit = asiaEnd + (InpMaxEntryDelayMin * 60);
+
+        if(!g_asiaExecutedToday && TimeCurrent() >= asiaStart) {
+            if(TimeCurrent() < asiaEnd) {
+                double h = iHigh(_Symbol, PERIOD_M1, 1);
+                double l = iLow(_Symbol, PERIOD_M1, 1);
+                if(h > g_asiaHigh) g_asiaHigh = h;
+                if(l < g_asiaLow) g_asiaLow = l;
+                g_asiaRangeDefined = true;
+            } else if(TimeCurrent() < asiaScanLimit && g_asiaRangeDefined) {
+
+                bool atrOkAsia = true;
+                if(InpUseATRFilter) {
+                    double atrVal = GetATRValue();
+                    double sessionRange = g_asiaHigh - g_asiaLow;
+                    if(atrVal <= 0 || sessionRange < atrVal * InpATRMinRangeMultAsia) atrOkAsia = false;
+                }
+
+                if(!atrOkAsia) {
+                    g_asiaExecutedToday = true;
+                } else {
+                    double m5_close = iClose(_Symbol, InpEntryTF, 1);
+                    double m5_open  = iOpen(_Symbol, InpEntryTF, 1);
+                    double m5_high  = iHigh(_Symbol, InpEntryTF, 1);
+                    double m5_low   = iLow(_Symbol, InpEntryTF, 1);
+
+                    double bodySize = MathAbs(m5_close - m5_open);
+                    double totalSize = m5_high - m5_low;
+                    bool validBody = (totalSize > 0) && ((bodySize / totalSize) * 100.0 > InpBodyFilterPct);
+
+                    bool bull = (m5_close > g_asiaHigh);
+                    bool bear = (m5_close < g_asiaLow);
+
+                    if(InpAsia_UseDailyFilter) {
+                        if(bull && g_dailyBias == -1) bull = false;
+                        if(bear && g_dailyBias == 1) bear = false;
+                    }
+
+                    if(bull || bear) {
+                        double riskAmt = GetRiskAmount();
+                        if(validBody) {
+                            if(bull) ExecuteTrade(1, m5_close, g_asiaLow, "ASIA", riskAmt, 0);
+                            else if(bear) ExecuteTrade(-1, m5_close, g_asiaHigh, "ASIA", riskAmt, 0);
+                        } else if(InpFadeEnabled) {
+                            double fadeRisk = riskAmt * (InpFadeRiskPct / 100.0);
+                            double buffer = InpFadeSLBufferPoints * point;
+                            if(bull) {
+                                double sl = m5_high + buffer;
+                                ExecuteTrade(-1, m5_close, sl, "ASIA_FADE", fadeRisk, g_asiaLow);
+                            } else if(bear) {
+                                double sl = m5_low - buffer;
+                                ExecuteTrade(1, m5_close, sl, "ASIA_FADE", fadeRisk, g_asiaHigh);
+                            }
+                        }
+                        if(CryptoSessionOpen("ASIA")) g_asiaExecutedToday = true;
+                    }
+                }
+            } else if(TimeCurrent() >= asiaScanLimit) {
+                g_asiaExecutedToday = true;
+            }
+        }
+    }
+
+    if(InpShowComments) {
+        Comment(StringFormat("Tri-Session v5.5 (Lon no-fade) | Bias: %s | Lon H/L: %.2f/%.2f | NY H/L: %.2f/%.2f | Asia H/L: %.2f/%.2f | Trades: %d",
+              (g_dailyBias==1?"BULL":(g_dailyBias==-1?"BEAR":"NEUT")),
+              g_lonHigh, g_lonLow, g_nyHigh, g_nyLow, g_asiaHigh, g_asiaLow, g_tradesToday));
+    }
+}
+
+// ══════════════════════════════════════════
+// 💼 EXECUTION
+// ══════════════════════════════════════════
+void ExecuteTrade(int dir, double entry, double sl_ref, string session, double riskAmount, double customTP) {
+    bool additional=CryptoPositionCount()>0;
+    if(additional){
+      if(!CryptoCanOpenSession() || !CryptoStackDirectionAllows(dir))return;
+      riskAmount*=InpStackExtraRiskMultiplier;
+    }
+
+    if(!CryptoRegimeAllows(dir))return;
+    if(!CryptoORBQualityAllows(dir,session))return;
+    if((dir==1 && !InpCryptoAllowLong) || (dir==-1 && !InpCryptoAllowShort))return;
+    if(CryptoPositionCount()>=InpCryptoMaxPositions || CryptoSessionOpen(session))return;
+    riskAmount*=dir==1?InpCryptoLongRiskMult:InpCryptoShortRiskMult;
+    MqlDateTime riskClock;TimeToStruct(TimeCurrent(),riskClock);
+    if(riskClock.day_of_week==0 || riskClock.day_of_week==6)riskAmount*=InpCryptoWeekendRiskMult;
+
+    if(StringFind(session,"ASIA")==0) riskAmount*=InpAsiaRiskMultiplier;
+    else if(StringFind(session,"NY")==0) riskAmount*=InpNYRiskMultiplier;
+    else if(session=="LONDON") riskAmount*=InpLondonRiskMultiplier;
+
+    double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+    int digits = (int)SymbolInfoInteger(_Symbol, SYMBOL_DIGITS);
+
+    // Rischio e target calcolati sul prezzo negoziabile corrente.
+    MqlTick quote;
+    if(!SymbolInfoTick(_Symbol,quote)) return;
+    entry=dir==1?quote.ask:quote.bid;
+    if(InpRegimeStopATR>0){
+      if(g_regimeStopDistance<=0)return;
+      sl_ref=entry-dir*g_regimeStopDistance;
+    }
+    double tickSize=SymbolInfoDouble(_Symbol,SYMBOL_TRADE_TICK_SIZE);
+    if(tickSize<=0 || riskAmount<=0 || entry<=0) return;
+    double sl_final=NormalizeDouble(MathRound(sl_ref/tickSize)*tickSize,digits);
+    double minStop=SymbolInfoInteger(_Symbol,SYMBOL_TRADE_STOPS_LEVEL)*point;
+    if((dir==1 && (sl_final>=quote.bid-minStop)) || (dir==-1 && sl_final<=quote.ask+minStop)) return;
+
+    double stopDistance=MathAbs(entry-sl_final);
+    if(InpCryptoMaxStopATR>0){double atr=GetATRValue();if(atr<=0 || stopDistance>atr*InpCryptoMaxStopATR)return;}
+    double aggregateBudget=AccountInfoDouble(ACCOUNT_EQUITY)*InpTotalOpenStopRiskPct/100.0-CryptoOpenStopRisk();
+    riskAmount=MathMin(riskAmount,aggregateBudget);if(riskAmount<=0)return;
+
+    if(InpMaxSpreadToStopPct>0 && quote.ask-quote.bid>stopDistance*InpMaxSpreadToStopPct/100.0) return;
+    double tp_final = 0;
+    if(customTP > 0) {
+        tp_final = NormalizeDouble(customTP, digits);
+    } else {
+        double dist = MathAbs(entry - sl_final);
+        if(dist == 0) return;
+        tp_final = NormalizeDouble((dir == 1) ? entry + (dist * InpRR_Target) : entry - (dist * InpRR_Target), digits);
+    }
+
+    tp_final=NormalizeDouble(MathRound(tp_final/tickSize)*tickSize,digits);
+    if(dir == 1 && tp_final <= entry) {
+        Print("DEBUG ExecuteTrade: SCARTATO (", session, ") - TP ", DoubleToString(tp_final,digits),
+              " <= entry ", DoubleToString(entry,digits));
+        return;
+    }
+    if(dir == -1 && tp_final >= entry) {
+        Print("DEBUG ExecuteTrade: SCARTATO (", session, ") - TP ", DoubleToString(tp_final,digits),
+              " >= entry ", DoubleToString(entry,digits));
+        return;
+    }
+
+    double minLot = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+    double stepLot = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
+    double profitPerLot = 0;
+
+    bool calcRes = false;
+    if(dir == 1) calcRes = OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, 1.0, entry, sl_final, profitPerLot);
+    else calcRes = OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, 1.0, entry, sl_final, profitPerLot);
+
+    if(!calcRes || profitPerLot >= 0) return;
+
+    if(stepLot<=0) return;
+    double lots = MathFloor((riskAmount / MathAbs(profitPerLot)) / stepLot) * stepLot;
+    // Nessun arrotondamento verso l'alto che superi il rischio scelto.
+    if(lots < minLot || stepLot<=0) return;
+    lots=MathMin(lots,MathFloor(SymbolInfoDouble(_Symbol,SYMBOL_VOLUME_MAX)/stepLot)*stepLot);
+    double margin=0;
+    if(!OrderCalcMargin(dir==1?ORDER_TYPE_BUY:ORDER_TYPE_SELL,_Symbol,lots,entry,margin) || margin<=0) return;
+    double availableMargin=AccountInfoDouble(ACCOUNT_MARGIN_FREE)*0.80;
+    if(margin>availableMargin) lots=MathFloor(lots*availableMargin/margin/stepLot)*stepLot;
+    if(lots<minLot) return;
+
+    string cmt = StringFormat("%s|v5.5|R:%.2f", session, riskAmount);
+    bool res = false;
+
+    if(dir == 1) res = trade.Buy(lots, _Symbol, 0.0, sl_final, tp_final, cmt);
+    else res = trade.Sell(lots, _Symbol, 0.0, sl_final, tp_final, cmt);
+
+    if(res && (trade.ResultRetcode()==TRADE_RETCODE_DONE || trade.ResultRetcode()==TRADE_RETCODE_DONE_PARTIAL)) {
+        g_tradesToday++;
+        if(additional)Print("CRYPTO_STACK_OPENED ticket ",trade.ResultOrder()," session ",session," nominalBudget ",riskAmount);
+
+
+        long posId=0; double filledEntry=entry;
+        ulong filledDeal=trade.ResultDeal();
+        if(filledDeal>0 && HistoryDealSelect(filledDeal)) {
+            posId=HistoryDealGetInteger(filledDeal,DEAL_POSITION_ID);
+            filledEntry=HistoryDealGetDouble(filledDeal,DEAL_PRICE);
+        }
+        if(posId > 0) RegisterPosition(posId, session, filledEntry, MathAbs(filledEntry - sl_final), dir);
+
+        if(session == "LONDON") g_totalLon++;
+        else if(session == "NY") g_totalNY++;
+        else if(session == "ASIA") g_totalAsia++;
+        else if(session == "NY_FADE") g_totalNYFade++;
+        else if(session == "ASIA_FADE") g_totalAsiaFade++;
+        else if(session == "NY_REVERSAL") g_totalNYRev++;
+        else if(session == "PYRAMID") g_totalPyramid++;
+
+        Print("TRADE OPENED: ", session, " | PosID: ", posId, " | Risk: ", DoubleToString(riskAmount,2), " | TP: ", DoubleToString(tp_final, digits));
+    }
+}
+
+// ══════════════════════════════════════════
+// 📊 STATS TRACKING
+// ══════════════════════════════════════════
+void OnTradeTransaction(const MqlTradeTransaction &trans, const MqlTradeRequest &request, const MqlTradeResult &result) {
+    if(trans.type != TRADE_TRANSACTION_DEAL_ADD) return;
+    if(!HistoryDealSelect(trans.deal)) return;
+    if(HistoryDealGetInteger(trans.deal, DEAL_MAGIC) != (long)InpMagicNumber) return;
+    if(HistoryDealGetString(trans.deal, DEAL_SYMBOL) != _Symbol) return;
+
+    long posId = HistoryDealGetInteger(trans.deal, DEAL_POSITION_ID);
+    int dealEntry = (int)HistoryDealGetInteger(trans.deal, DEAL_ENTRY);
+
+    if(dealEntry == DEAL_ENTRY_OUT) {
+        string session = GetSessionByPosId(posId);
+        if(session == "UNKNOWN") return;
+
+        if(!HistorySelectByPosition(posId)) return;
+
+        double totalPnL = 0;
+        int dealsCount = HistoryDealsTotal();
+        for(int i=0; i<dealsCount; i++) {
+            ulong dticket = HistoryDealGetTicket(i);
+            if(HistoryDealGetInteger(dticket, DEAL_POSITION_ID) == posId &&
+               HistoryDealGetInteger(dticket, DEAL_MAGIC) == (long)InpMagicNumber &&
+               HistoryDealGetInteger(dticket, DEAL_ENTRY) == DEAL_ENTRY_OUT) {
+                totalPnL += HistoryDealGetDouble(dticket, DEAL_PROFIT) +
+                            HistoryDealGetDouble(dticket, DEAL_SWAP) +
+                            HistoryDealGetDouble(dticket, DEAL_COMMISSION);
+            }
+        }
+
+        bool stillOpen = false;
+        for(int p=PositionsTotal()-1; p>=0; p--) if(PositionGetTicket(p)>0 && PositionGetInteger(POSITION_IDENTIFIER) == posId) stillOpen = true;
+        if(stillOpen) return;
+
+        if(!IsIdAlreadyCounted(posId)) {
+            if(session == "LONDON") { g_profitLon += totalPnL; if(totalPnL > 0) g_winsLon++; }
+            else if(session == "NY") { g_profitNY += totalPnL; if(totalPnL > 0) g_winsNY++; }
+            else if(session == "ASIA") { g_profitAsia += totalPnL; if(totalPnL > 0) g_winsAsia++; }
+            else if(session == "NY_FADE") { g_profitNYFade += totalPnL; if(totalPnL > 0) g_winsNYFade++; }
+            else if(session == "ASIA_FADE") { g_profitAsiaFade += totalPnL; if(totalPnL > 0) g_winsAsiaFade++; }
+            else if(session == "NY_REVERSAL") { g_profitNYRev += totalPnL; if(totalPnL > 0) g_winsNYRev++; }
+
+            if(session=="PYRAMID") {g_profitPyramid+=totalPnL;if(totalPnL>0) g_winsPyramid++;}
+            AddToLongArray(g_countedLossIds, posId);
+            if(totalPnL < 0) {
+                g_lossesToday++;
+                if(g_lossesToday >= InpMaxLossesDay) g_dayLocked = true;
+
+                if(session == "NY_FADE") {
+                    g_nyReArmActive = true;
+                    g_nyReArmDeadline = TimeCurrent() + 30*60;
+                }
+            }
+            UnregisterPosition(posId);
+        }
+    }
+}
+//+------------------------------------------------------------------+
+// Esporta una riga per posizione, unendo tutti i parziali e includendo costi e swap.
+double OnTester() {
+    if(!HistorySelect(0,TimeCurrent())) return TesterStatistics(STAT_PROFIT);
+    long ids[];
+    for(int i=0;i<HistoryDealsTotal();i++) {
+        ulong deal=HistoryDealGetTicket(i);
+        if(HistoryDealGetString(deal,DEAL_SYMBOL)!=_Symbol || HistoryDealGetInteger(deal,DEAL_MAGIC)!=(long)InpMagicNumber) continue;
+        long id=HistoryDealGetInteger(deal,DEAL_POSITION_ID);
+        bool found=false;
+        for(int j=0;j<ArraySize(ids);j++) if(ids[j]==id) {found=true;break;}
+        if(id>0 && !found) {int n=ArraySize(ids);ArrayResize(ids,n+1);ids[n]=id;}
+    }
+    string filename=MQLInfoString(MQL_PROGRAM_NAME)+"_trades.csv";
+    int handle=FileOpen(filename,FILE_COMMON|FILE_WRITE|FILE_CSV|FILE_ANSI,';',CP_UTF8);
+    if(handle==INVALID_HANDLE) {Print("CSV non creato: ",GetLastError());return TesterStatistics(STAT_PROFIT);}
+    FileWrite(handle,"position_id","session","open_time","close_time","initial_volume","entry_price","initial_sl","initial_tp","net_profit");
+    for(int i=0;i<ArraySize(ids);i++) {
+        if(!HistorySelectByPosition(ids[i])) continue;
+        string session="";datetime opened=0,closed=0;double volume=0,entry=0,sl=0,tp=0,net=0;
+        for(int j=0;j<HistoryDealsTotal();j++) {
+            ulong deal=HistoryDealGetTicket(j);
+            net+=HistoryDealGetDouble(deal,DEAL_PROFIT)+HistoryDealGetDouble(deal,DEAL_COMMISSION)+HistoryDealGetDouble(deal,DEAL_SWAP)+HistoryDealGetDouble(deal,DEAL_FEE);
+            if(HistoryDealGetInteger(deal,DEAL_ENTRY)==DEAL_ENTRY_IN && opened==0) {
+                opened=(datetime)HistoryDealGetInteger(deal,DEAL_TIME);
+                session=HistoryDealGetString(deal,DEAL_COMMENT);int sep=StringFind(session,"|");if(sep>=0) session=StringSubstr(session,0,sep);
+                volume=HistoryDealGetDouble(deal,DEAL_VOLUME);entry=HistoryDealGetDouble(deal,DEAL_PRICE);
+                sl=HistoryDealGetDouble(deal,DEAL_SL);tp=HistoryDealGetDouble(deal,DEAL_TP);
+            }
+            if(HistoryDealGetInteger(deal,DEAL_ENTRY)==DEAL_ENTRY_OUT) closed=(datetime)HistoryDealGetInteger(deal,DEAL_TIME);
+        }
+        FileWrite(handle,ids[i],session,TimeToString(opened,TIME_DATE|TIME_SECONDS),TimeToString(closed,TIME_DATE|TIME_SECONDS),DoubleToString(volume,4),DoubleToString(entry,5),DoubleToString(sl,5),DoubleToString(tp,5),DoubleToString(net,2));
+    }
+    FileClose(handle);
+    Print("CSV creato: ",TerminalInfoString(TERMINAL_COMMONDATA_PATH),"\\Files\\",filename);
+    return TesterStatistics(STAT_PROFIT);
+}

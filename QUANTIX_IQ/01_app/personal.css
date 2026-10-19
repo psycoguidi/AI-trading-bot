@@ -1,0 +1,60 @@
+/* Calendario, diario e account: stesso marchio, lettura comoda su telefono. */
+#quantix-app .qi-calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+#quantix-app .qi-calendar-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+#quantix-app .qi-calendar-kpi{background:var(--qi-surface);border:1px solid var(--qi-border);border-radius:16px;padding:18px;min-width:0}
+#quantix-app .qi-calendar-kpi>span{display:block;color:var(--qi-muted);font-size:12px;margin-bottom:8px}
+#quantix-app .qi-calendar-kpi>strong{display:block;font-size:25px;letter-spacing:-.5px;line-height:1.3;overflow-wrap:anywhere}
+#quantix-app .qi-calendar-layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:20px;align-items:start}
+#quantix-app .qi-calendar-card{padding:22px}
+#quantix-app .qi-calendar-month{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+#quantix-app .qi-calendar-month h2{text-transform:capitalize;font-size:23px;text-align:center}
+#quantix-app .qi-calendar-month>.qi-button{font-size:28px;min-width:40px;padding:0 10px}
+#quantix-app .qi-calendar-picker{display:flex;justify-content:center;align-items:center;gap:10px;font-size:11px;color:var(--qi-muted);margin-bottom:18px}
+#quantix-app .qi-calendar-picker input{background:var(--qi-bg);border:1px solid var(--qi-border);border-radius:8px;color:var(--qi-text);padding:6px 9px;max-width:170px}
+#quantix-app .qi-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+#quantix-app .qi-calendar-weekday{text-align:center;font-size:12px;color:var(--qi-muted);padding:6px 0 10px}
+#quantix-app .qi-calendar-day{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:94px;min-width:0;padding:26px 4px 9px;border:1px solid var(--qi-border);border-radius:12px;background:var(--qi-bg);color:var(--qi-text);font-variant-numeric:tabular-nums}
+#quantix-app .qi-calendar-day.outside{border-color:transparent;background:transparent}
+#quantix-app .qi-calendar-day.positive{border-color:var(--qi-green);background:color-mix(in srgb,var(--qi-green) 5%,var(--qi-bg))}
+#quantix-app .qi-calendar-day.negative{border-color:var(--qi-red);background:color-mix(in srgb,var(--qi-red) 5%,var(--qi-bg))}
+#quantix-app .qi-calendar-day.selected{outline:2px solid var(--qi-accent);outline-offset:2px}
+#quantix-app .qi-calendar-day.today .qi-calendar-date{color:var(--qi-accent);font-weight:700}
+#quantix-app .qi-calendar-date{position:absolute;top:7px;right:9px;font-size:12px;color:var(--qi-muted)}
+#quantix-app .qi-calendar-day>strong{font-size:clamp(12px,1.5vw,19px);line-height:1.3;white-space:nowrap;max-width:100%}
+#quantix-app .qi-calendar-day>small{font-size:10px;white-space:nowrap;color:var(--qi-muted)}
+#quantix-app .qi-calendar-weeks{display:grid;gap:13px}
+#quantix-app .qi-calendar-week{border:1px solid var(--qi-border);background:var(--qi-surface);border-radius:14px;padding:16px;display:grid;gap:8px;min-width:0}
+#quantix-app .qi-calendar-week>div{display:flex;justify-content:space-between;gap:8px;color:var(--qi-text);font-size:12px}
+#quantix-app .qi-calendar-week small{color:var(--qi-muted);font-size:10px}
+#quantix-app .qi-calendar-week>.qi-number{font-size:22px;line-height:1.3;overflow-wrap:anywhere}
+#quantix-app .qi-day-detail{margin-top:20px;scroll-margin-top:16px}
+#quantix-app .qi-day-detail .qi-calendar-kpi{background:var(--qi-bg);padding:13px}
+#quantix-app .qi-day-detail .qi-calendar-kpi>strong{font-size:21px}
+#quantix-app .qi-day-secondary{display:flex;flex-wrap:wrap;gap:8px 18px;color:var(--qi-muted);font-size:12px;margin-bottom:18px}
+#quantix-app .qi-diary-row{width:100%;display:flex;align-items:center;gap:14px;text-align:left;padding:17px 0;border:0;border-bottom:1px solid var(--qi-border);background:transparent;color:var(--qi-text);min-width:0}
+#quantix-app .qi-diary-row>div:first-child{flex:1;min-width:0}
+#quantix-app .qi-diary-row>div:nth-child(2){text-align:right;min-width:0;max-width:42%}
+#quantix-app .qi-diary-row strong{font-size:15px}
+#quantix-app .qi-diary-row small{display:block;color:var(--qi-muted);font-size:11px;margin-top:4px;overflow-wrap:anywhere}
+#quantix-app .qi-diary-row>.qi-icon{color:var(--qi-muted);width:17px}
+#quantix-app .qi-journal-search{display:block;margin:18px 0 5px}
+#quantix-app .qi-journal-search input{width:100%}
+#quantix-app .qi-personal-details{margin-top:18px}
+#quantix-app .qi-personal-details>summary{font-size:13px;color:var(--qi-accent);cursor:pointer;min-height:40px;padding:10px 0}
+#quantix-app .qi-execution-list{display:grid;gap:0}
+#quantix-app .qi-execution-list>div{display:grid;gap:5px;border-bottom:1px solid var(--qi-border);padding:13px 0;font-size:12px}
+#quantix-app .qi-execution-list>div>span{color:var(--qi-muted)}
+#quantix-app .qi-execution-list>div>span.qi-positive{color:var(--qi-green)}
+#quantix-app .qi-execution-list>div>span.qi-negative{color:var(--qi-red)}
+#quantix-app .qi-trade-result{font-size:30px;font-weight:700;line-height:1.4;margin:14px 0 20px}
+#quantix-app .qi-trade-result small{font-size:12px;color:var(--qi-muted);font-weight:400}
+#quantix-app .qi-diary-chart{margin-top:18px;width:100%;min-width:0}
+#quantix-app .qi-diary-chart svg{display:block;width:100%;height:auto;max-height:260px}
+#quantix-app .qi-diary-chart text{fill:var(--qi-muted);font-family:inherit;font-size:11px}
+#quantix-app #qi-personal-note{margin-top:20px}
+#quantix-app .qi-personal-feedback{color:var(--qi-accent);font-size:12px;line-height:1.6;margin-top:13px}
+#quantix-app .qi-personal-error{color:var(--qi-red);font-size:13px;line-height:1.6;margin-top:16px}
+#quantix-app .qi-personal-account{margin-bottom:18px}
+#quantix-app #qi-personal-profile .qi-form-grid{margin-top:20px}
+@media(max-width:1000px){#quantix-app .qi-calendar-layout{grid-template-columns:minmax(0,1fr)}#quantix-app .qi-calendar-weeks{grid-template-columns:repeat(3,minmax(0,1fr))}#quantix-app .qi-calendar-kpi>strong{font-size:22px}}
+@media(max-width:600px){#quantix-app .qi-calendar-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:14px}#quantix-app .qi-calendar-kpi{padding:13px}#quantix-app .qi-calendar-kpi>span{font-size:10px;line-height:1.5}#quantix-app .qi-calendar-kpi>strong{font-size:22px}#quantix-app .qi-calendar-card{padding:13px 9px}#quantix-app .qi-calendar-grid{gap:4px}#quantix-app .qi-calendar-day{min-height:76px;border-radius:8px;padding:24px 2px 6px;gap:5px}#quantix-app .qi-calendar-date{font-size:10px;right:6px;top:5px}#quantix-app .qi-calendar-weekday{font-size:10px;padding-bottom:4px}#quantix-app .qi-calendar-day>strong{font-size:11px;letter-spacing:-.3px}#quantix-app .qi-calendar-day>small{font-size:9px}#quantix-app .qi-calendar-count-label{display:none}#quantix-app .qi-calendar-month h2{font-size:21px}#quantix-app .qi-calendar-weeks{display:flex;overflow-x:auto;padding:3px 0 8px;gap:9px}#quantix-app .qi-calendar-week{min-width:155px;padding:13px}#quantix-app .qi-calendar-week>.qi-number{font-size:20px}#quantix-app .qi-diary-row{gap:7px}#quantix-app .qi-diary-row strong{font-size:13px}#quantix-app .qi-diary-row small{font-size:10px}#quantix-app .qi-diary-row>.qi-icon{width:14px}#quantix-app .qi-calendar-toolbar .qi-segment{width:100%;justify-content:center}#quantix-app .qi-calendar-toolbar .qi-segment button{font-size:11px;padding:7px 8px}#quantix-app .qi-day-detail .qi-calendar-kpi>strong{font-size:19px}}

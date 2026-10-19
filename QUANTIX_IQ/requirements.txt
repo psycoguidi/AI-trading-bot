@@ -1,0 +1,4 @@
+# Windows x64; dipendenze dirette della copia pubblicata
+MetaTrader5==5.0.6231
+pywebpush==2.5.0
+cryptography==50.0.2

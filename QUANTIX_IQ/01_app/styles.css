@@ -1,0 +1,304 @@
+#quantix-app{--qi-bg:#111b22;--qi-surface:#1a2933;--qi-surface2:#20333e;--qi-border:#304752;--qi-text:#f0f5f8;--qi-muted:#a9bdc9;--qi-accent:#39e2ed;--qi-accent-ink:#07353a;--qi-green:#63deb0;--qi-red:#ff939e;--qi-amber:#edc586;--qi-shadow:0 8px 28px #00000016;--qi-soft:#39e2ed0b;--qi-radius:20px;color-scheme:dark;background:var(--qi-bg);color:var(--qi-text);font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.5;isolation:isolate;min-width:0;text-align:left}
+#quantix-app[data-theme=light]{--qi-bg:#f3f6f7;--qi-surface:#fff;--qi-surface2:#e9f0f3;--qi-border:#d5e0e5;--qi-text:#14252e;--qi-muted:#536b78;--qi-accent:#007f8b;--qi-accent-ink:#fff;--qi-green:#177456;--qi-red:#b12f44;--qi-amber:#936218;--qi-shadow:0 6px 24px #18354209;--qi-soft:#007f8b08;color-scheme:light}
+#quantix-app *{box-sizing:border-box}
+#quantix-app button,#quantix-app input,#quantix-app select,#quantix-app textarea{font:inherit}
+#quantix-app button{cursor:var(--cursor-interaction,pointer)}
+#quantix-app button:focus-visible,#quantix-app a:focus-visible,#quantix-app input:focus-visible,#quantix-app select:focus-visible,#quantix-app textarea:focus-visible{outline:3px solid var(--qi-accent);outline-offset:3px}
+#quantix-app button:disabled{opacity:.45;cursor:not-allowed}
+#quantix-app button,#quantix-app a{touch-action:manipulation}
+#quantix-app [hidden]{display:none!important}
+#quantix-app h1,#quantix-app h2,#quantix-app h3,#quantix-app p{margin:0}
+#quantix-app h1{font-size:30px;line-height:1.15;letter-spacing:-1px;font-weight:700}
+#quantix-app h2{font-size:19px;line-height:1.3;font-weight:650;letter-spacing:-.3px}
+#quantix-app h3{font-size:16px;font-weight:650}
+#quantix-app .qi-muted{color:var(--qi-muted)}
+#quantix-app .qi-small{font-size:12px}
+#quantix-app .qi-positive{color:var(--qi-green)}
+#quantix-app .qi-negative{color:var(--qi-red)}
+#quantix-app .qi-amber{color:var(--qi-amber)}
+#quantix-app .qi-number{font-variant-numeric:tabular-nums}
+#quantix-app .qi-icon{width:20px;height:20px;flex:none;stroke-width:1.7;vertical-align:middle}
+#quantix-app .qi-shell{display:flex;flex-direction:column;max-width:1200px;margin:auto;min-width:0}
+#quantix-app:not([data-inline=true]) .qi-shell{min-height:100dvh}
+#quantix-app:not([data-inline=true]) .qi-main{flex:1}
+#quantix-app .qi-brand{display:flex;align-items:center;gap:10px;color:var(--qi-text);font-size:18px;font-weight:700;letter-spacing:.6px;text-decoration:none;background:none;border:0;padding:0}
+#quantix-app .qi-brand img{width:44px;height:44px;border-radius:12px;object-fit:cover}
+#quantix-app .qi-brand em{color:var(--qi-accent);font-style:normal}
+#quantix-app .qi-nav{position:sticky;bottom:0;z-index:12;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:100%;background:var(--qi-bg);border-top:1px solid var(--qi-border);padding:8px 12px calc(8px + env(safe-area-inset-bottom));gap:0}
+#quantix-app .qi-nav button{border:0;background:transparent;color:var(--qi-muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-radius:10px;text-align:center;padding:8px 2px;font-size:13px;min-height:61px;white-space:nowrap}
+#quantix-app .qi-nav .qi-icon{width:24px;height:24px}
+#quantix-app .qi-nav button[aria-current=page]{background:transparent;color:var(--qi-accent)}
+#quantix-app .qi-nav button:hover{background:var(--qi-surface)}
+#quantix-app .qi-main{width:100%;min-width:0;padding:26px clamp(18px,3vw,42px) 30px}
+#quantix-app .qi-mobile-brand{display:flex;justify-content:center;padding-bottom:22px}
+#quantix-app .qi-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:20px}
+#quantix-app .qi-overline{font-size:13px;color:var(--qi-muted);margin-bottom:6px;display:block}
+#quantix-app .qi-top-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+#quantix-app .qi-theme{display:flex;border:1px solid var(--qi-border);padding:3px;border-radius:24px;background:var(--qi-surface)}
+#quantix-app .qi-theme button{width:36px;height:34px;border:0;border-radius:20px;background:transparent;color:var(--qi-muted);display:grid;place-items:center}
+#quantix-app .qi-theme button[aria-pressed=true]{background:var(--qi-surface2);color:var(--qi-accent)}
+#quantix-app .qi-pill{display:inline-flex;align-items:center;gap:6px;max-width:100%;border-radius:7px;background:var(--qi-surface2);padding:5px 9px;font-size:11px;letter-spacing:.9px;color:var(--qi-muted);line-height:1.4}
+#quantix-app .qi-demo-line{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+#quantix-app .qi-button{border:1px solid var(--qi-border);border-radius:10px;background:var(--qi-surface2);color:var(--qi-text);padding:10px 14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:500;font-size:13px;min-height:40px;white-space:normal;text-decoration:none}
+#quantix-app .qi-button:hover{border-color:var(--qi-accent)}
+#quantix-app .qi-button.primary{background:var(--qi-accent);color:var(--qi-accent-ink);border-color:var(--qi-accent);font-weight:650}
+#quantix-app .qi-button.ghost{background:transparent;border-color:transparent;color:var(--qi-muted)}
+#quantix-app .qi-button.danger{color:var(--qi-red)}
+#quantix-app .qi-icon-button{display:inline-grid;place-items:center;padding:8px;background:transparent;border:0;border-radius:8px;color:var(--qi-muted);min-height:36px;min-width:36px}
+#quantix-app .qi-icon-button:hover{background:var(--qi-surface2);color:var(--qi-text)}
+#quantix-app .qi-card{background:var(--qi-surface);border:1px solid var(--qi-border);border-radius:var(--qi-radius);padding:22px;box-shadow:var(--qi-shadow);min-width:0}
+#quantix-app .qi-status{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
+#quantix-app .qi-status-left{display:flex;gap:13px;min-width:0}
+#quantix-app .qi-dot{width:11px;height:11px;border-radius:50%;background:var(--qi-green);flex:none;margin-top:7px}
+#quantix-app .qi-dot.blocked{background:var(--qi-red)}
+#quantix-app .qi-dot.offline,#quantix-app .qi-dot.paused{background:var(--qi-amber)}
+#quantix-app .qi-status-title{font-size:17px;font-weight:650}
+#quantix-app .qi-status-reason{color:var(--qi-muted);font-size:15px;margin-top:3px}
+#quantix-app .qi-meta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;color:var(--qi-muted);font-size:12px;margin-top:10px}
+#quantix-app .qi-status-robot{color:var(--qi-muted);width:35px;height:35px}
+#quantix-app .qi-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px}
+#quantix-app .qi-kpi{padding:17px 18px}
+#quantix-app .qi-kpi-head{display:flex;justify-content:space-between;align-items:center;color:var(--qi-muted);gap:5px;font-size:13px;min-height:32px}
+#quantix-app .qi-kpi-head .qi-icon-button{width:25px;min-width:25px;min-height:25px;padding:3px}
+#quantix-app .qi-kpi-value{font-size:clamp(20px,2vw,28px);letter-spacing:-.7px;font-weight:650;white-space:nowrap;margin-top:5px}
+#quantix-app .qi-kpi-foot{font-size:11px;color:var(--qi-muted);margin-top:6px}
+#quantix-app .qi-columns{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(250px,1fr);gap:18px;align-items:start}
+#quantix-app .qi-stack{display:grid;gap:18px;min-width:0}
+#quantix-app .qi-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px;flex-wrap:wrap}
+#quantix-app .qi-decision-copy{color:var(--qi-muted);font-size:15px;margin:11px 0 18px;max-width:68ch}
+#quantix-app .qi-check-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--qi-border);font-size:13px}
+#quantix-app .qi-check-row:last-child{border-bottom:0}
+#quantix-app .qi-check-row>span:first-child{display:flex;gap:10px;align-items:center;min-width:0}
+#quantix-app .qi-check-status{display:flex;align-items:center;gap:7px;flex:none;color:var(--qi-muted);font-size:12px}
+#quantix-app .qi-check-status.ok{color:var(--qi-green)}
+#quantix-app .qi-check-status.no{color:var(--qi-amber)}
+#quantix-app .qi-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:17px}
+#quantix-app .qi-card-link{background:transparent;color:var(--qi-text);border:0;border-top:1px solid var(--qi-border);display:flex;justify-content:space-between;align-items:center;width:100%;padding:15px 0 0;margin-top:17px;text-align:left;font-size:14px}
+#quantix-app .qi-chart{position:relative;min-width:0;margin-top:14px}
+#quantix-app .qi-chart svg{display:block;width:100%;height:220px;overflow:visible}
+#quantix-app .qi-chart text{fill:var(--qi-muted);font-size:11px;font-family:inherit}
+#quantix-app .qi-chart .grid{stroke:var(--qi-border);stroke-width:.65}
+#quantix-app .qi-chart .level{stroke:var(--qi-accent);stroke-width:1;stroke-dasharray:5 5;opacity:.8}
+#quantix-app .qi-chart .up{fill:var(--qi-green);stroke:var(--qi-green)}
+#quantix-app .qi-chart .down{fill:var(--qi-red);stroke:var(--qi-red)}
+#quantix-app .qi-chart .curve{fill:none;stroke:var(--qi-accent);stroke-width:2.2;stroke-linejoin:round}
+#quantix-app .qi-chart .area{fill:var(--qi-soft)}
+#quantix-app .qi-chart .qi-hit{fill:transparent;cursor:crosshair}
+#quantix-app .qi-chart-tooltip{position:absolute;left:12px;top:8px;pointer-events:none;background:var(--qi-surface2);border:1px solid var(--qi-border);border-radius:8px;padding:6px 9px;color:var(--qi-text);font-size:11px;z-index:2;max-width:90%}
+#quantix-app .qi-chart-controls{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap;font-size:12px}
+#quantix-app .qi-segment{display:flex;align-items:center;background:var(--qi-surface2);border-radius:8px;padding:3px;gap:3px;flex-wrap:wrap}
+#quantix-app .qi-segment button{color:var(--qi-muted);background:transparent;border:0;padding:6px 10px;border-radius:5px;font-size:12px;min-height:30px}
+#quantix-app .qi-segment button[aria-pressed=true]{color:var(--qi-accent);background:var(--qi-bg)}
+#quantix-app .qi-empty{display:grid;justify-items:center;text-align:center;padding:25px 4px 18px;gap:8px;color:var(--qi-muted)}
+#quantix-app .qi-empty .qi-icon{width:33px;height:33px;margin:3px 0 6px}
+#quantix-app .qi-empty strong{color:var(--qi-text);font-weight:500;font-size:14px}
+#quantix-app .qi-position{display:grid;gap:14px}
+#quantix-app .qi-position-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#quantix-app .qi-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#quantix-app .qi-grid2>div{font-size:13px}
+#quantix-app .qi-grid2 span{display:block;color:var(--qi-muted);font-size:11px;margin-bottom:3px}
+#quantix-app .qi-inline-note{color:var(--qi-muted);font-size:12px;margin-top:15px;line-height:1.6}
+#quantix-app .qi-count{padding:2px 9px;border-radius:16px;background:var(--qi-surface2);font-size:12px;font-weight:500;color:var(--qi-muted)}
+#quantix-app .qi-steps{list-style:none;padding:0;margin:0}
+#quantix-app .qi-step{display:flex;align-items:flex-start;gap:11px;padding:13px 0;border-bottom:1px solid var(--qi-border)}
+#quantix-app .qi-step:last-child{border:0;padding-bottom:0}
+#quantix-app .qi-step .qi-icon{margin-top:2px;color:var(--qi-accent);width:17px;height:17px}
+#quantix-app .qi-step strong{display:block;font-size:13px;font-weight:500}
+#quantix-app .qi-step small{color:var(--qi-muted);font-size:11px}
+#quantix-app .qi-chat-chart{margin-bottom:18px}
+#quantix-app .qi-chat-log{display:grid;gap:16px;padding:8px 0 22px}
+#quantix-app .qi-message{max-width:86%;display:grid;gap:6px;justify-self:start}
+#quantix-app .qi-message.user{justify-self:end}
+#quantix-app .qi-message-head{font-size:11px;color:var(--qi-muted);display:flex;gap:9px;align-items:center}
+#quantix-app .qi-message.user .qi-message-head{justify-content:flex-end}
+#quantix-app .qi-message-text{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--qi-surface2);border-radius:0 15px 15px 15px;padding:13px 16px;font-size:14px;line-height:1.7}
+#quantix-app .qi-message.user .qi-message-text{background:var(--qi-accent);color:var(--qi-accent-ink);border-radius:15px 0 15px 15px}
+#quantix-app .qi-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px}
+#quantix-app .qi-chips button{font-size:12px;border:1px solid var(--qi-border);background:var(--qi-surface);color:var(--qi-muted);border-radius:18px;padding:7px 12px;min-height:34px}
+#quantix-app .qi-compose{display:flex;gap:9px;align-items:flex-end}
+#quantix-app .qi-input,#quantix-app textarea,#quantix-app select{width:100%;border:1px solid var(--qi-border);background:var(--qi-bg);color:var(--qi-text);border-radius:10px;padding:11px 12px;min-width:0;min-height:44px;font-size:14px}
+#quantix-app textarea{resize:vertical;min-height:48px;max-height:160px}
+#quantix-app .qi-compose .qi-button{min-width:46px;height:46px;padding:10px}
+#quantix-app .qi-compose .qi-button .qi-send-label{display:none}
+#quantix-app .qi-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+#quantix-app .qi-search{max-width:270px;flex:1;min-width:150px}
+#quantix-app .qi-activity-list{display:grid;gap:0}
+#quantix-app .qi-event{display:grid;grid-template-columns:42px 36px minmax(0,1fr) 20px;gap:12px;align-items:start;padding:20px 0;border:0;border-bottom:1px solid var(--qi-border);background:transparent;color:var(--qi-text);width:100%;text-align:left}
+#quantix-app .qi-event:last-child{border-bottom:0}
+#quantix-app .qi-event time{color:var(--qi-muted);font-size:12px;margin-top:4px}
+#quantix-app .qi-event-symbol{background:var(--qi-surface2);border-radius:10px;display:grid;place-items:center;width:34px;height:34px;color:var(--qi-accent)}
+#quantix-app .qi-event strong{font-size:14px;font-weight:500;display:block;margin-bottom:4px}
+#quantix-app .qi-event p{font-size:12px;color:var(--qi-muted);max-width:80ch}
+#quantix-app .qi-event>.qi-icon{width:16px;color:var(--qi-muted);margin-top:9px}
+#quantix-app .qi-table-scroll{overflow-x:auto}
+#quantix-app table{width:100%;border-collapse:collapse;font-size:13px}
+#quantix-app th{color:var(--qi-muted);font-size:11px;font-weight:500;text-align:left;padding:12px 9px;border-bottom:1px solid var(--qi-border);white-space:nowrap}
+#quantix-app td{padding:12px 9px;border-bottom:1px solid var(--qi-border);font-variant-numeric:tabular-nums}
+#quantix-app td:last-child,#quantix-app th:last-child{text-align:right}
+#quantix-app .qi-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+#quantix-app .qi-field{display:grid;gap:7px;font-size:13px}
+#quantix-app .qi-field small{font-size:11px;color:var(--qi-muted)}
+#quantix-app .qi-error{color:var(--qi-red);font-size:13px;padding-top:12px}
+#quantix-app .qi-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:16px 0;font-size:14px}
+#quantix-app .qi-toggle-row input{accent-color:var(--qi-accent);width:18px;height:18px;flex:none}
+#quantix-app .qi-footer-note{font-size:11px;color:var(--qi-muted);padding-top:22px}
+#quantix-app .qi-modal{background:var(--qi-surface);color:var(--qi-text);border:1px solid var(--qi-border);border-radius:22px;box-shadow:0 24px 80px #0007;padding:25px;width:min(620px,calc(100% - 28px));max-height:85vh;overflow:auto}
+#quantix-app .qi-modal::backdrop{background:#030b12b3;backdrop-filter:blur(5px)}
+#quantix-app .qi-modal h2{padding-right:20px}
+#quantix-app .qi-modal-close{position:absolute;top:15px;right:15px}
+#quantix-app .qi-modal-body{margin-top:18px}
+#quantix-app .qi-modal-body>p{font-size:14px;line-height:1.75;color:var(--qi-muted);white-space:pre-wrap}
+#quantix-app .qi-scenarios{display:grid;gap:10px}
+#quantix-app .qi-scenario{display:flex;align-items:flex-start;gap:14px;text-align:left;width:100%;border:1px solid var(--qi-border);background:var(--qi-bg);border-radius:13px;color:var(--qi-text);padding:15px}
+#quantix-app .qi-scenario[aria-pressed=true]{border-color:var(--qi-accent)}
+#quantix-app .qi-scenario>.qi-icon{color:var(--qi-accent);margin-top:2px}
+#quantix-app .qi-scenario strong{font-size:14px;font-weight:500;display:block}
+#quantix-app .qi-scenario small{font-size:12px;display:block;color:var(--qi-muted);margin-top:4px}
+#quantix-app .qi-toast{position:sticky;bottom:90px;z-index:15;margin:14px auto 0;padding:11px 16px;border:1px solid var(--qi-border);background:var(--qi-surface2);color:var(--qi-text);border-radius:10px;max-width:600px;box-shadow:var(--qi-shadow);font-size:13px}
+#quantix-app .qi-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+@media(max-width:1100px){#quantix-app .qi-kpis{grid-template-columns:1fr 1fr}#quantix-app .qi-kpi-value{font-size:27px}#quantix-app .qi-columns{grid-template-columns:minmax(0,1fr)}#quantix-app .qi-main{padding:26px 22px}}
+@media(max-width:820px){#quantix-app .qi-shell{display:flex;flex-direction:column}#quantix-app .qi-main{order:0;border:0;width:100%;padding:18px 18px 24px}#quantix-app .qi-mobile-brand{display:flex;justify-content:center;padding-bottom:22px}#quantix-app .qi-mobile-brand .qi-brand img{width:35px;height:35px;border-radius:9px}#quantix-app .qi-mobile-brand .qi-brand{font-size:17px}#quantix-app .qi-nav{order:1;position:sticky;bottom:0;z-index:12;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:100%;background:var(--qi-bg);border-top:1px solid var(--qi-border);padding:7px 4px calc(7px + env(safe-area-inset-bottom));gap:0}#quantix-app .qi-nav button{padding:7px 1px;display:flex;flex-direction:column;justify-content:center;gap:4px;border-radius:10px;min-height:55px;font-size:11px;letter-spacing:-.2px;white-space:nowrap}#quantix-app .qi-nav button[aria-current=page]{background:transparent}#quantix-app .qi-nav .qi-icon{width:22px;height:22px}#quantix-app h1{font-size:32px}#quantix-app .qi-top{align-items:center}#quantix-app .qi-kpi{padding:14px}#quantix-app .qi-kpi-value{font-size:25px}#quantix-app .qi-kpi-head{font-size:12px}#quantix-app .qi-kpi-foot{font-size:11px}#quantix-app .qi-card{padding:19px}#quantix-app .qi-kpis{gap:11px}#quantix-app .qi-status{padding:21px}#quantix-app .qi-top-actions>.qi-button{display:none}#quantix-app .qi-form-grid{grid-template-columns:1fr}#quantix-app .qi-message{max-width:94%}#quantix-app .qi-event{grid-template-columns:36px 29px minmax(0,1fr) 14px;gap:9px}#quantix-app .qi-event-symbol{width:29px;height:31px}#quantix-app .qi-toast{bottom:72px}}
+@media(max-width:370px){#quantix-app .qi-main{padding-left:12px;padding-right:12px}#quantix-app .qi-kpi-value{font-size:22px}#quantix-app .qi-kpi{padding:12px}#quantix-app .qi-card{padding:16px}#quantix-app .qi-status{padding:18px}#quantix-app h1{font-size:29px}#quantix-app .qi-demo-line{gap:8px}#quantix-app .qi-pill{font-size:11px;letter-spacing:.5px}#quantix-app .qi-theme button{width:31px}#quantix-app .qi-check-row{gap:7px}#quantix-app .qi-check-status{font-size:11px}}
+@media(prefers-reduced-motion:no-preference){#quantix-app button{transition:background .15s,border-color .15s,color .15s}#quantix-app .qi-card{transition:background .2s,border-color .2s}}
+
+/* Collegamento personale: stesso marchio e stessa barra inferiore. */
+#quantix-app .qi-live-refresh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-5px 0 18px;color:var(--qi-muted);font-size:12px;flex-wrap:wrap}
+#quantix-app .qi-live-warning{margin-bottom:18px;color:var(--qi-amber)}
+#quantix-app .qi-live-warning p{margin-top:7px;font-size:13px}
+#quantix-app .qi-live-session{border-top:1px solid var(--qi-border);padding:18px 0 4px;margin-top:18px}
+#quantix-app .qi-live-session .qi-section-head{margin-bottom:8px}
+#quantix-app .qi-live-url{color:var(--qi-accent);overflow-wrap:anywhere}
+@media(max-width:600px){#quantix-app[data-source=live] .qi-kpi-value{font-size:clamp(17px,4.5vw,25px)}}
+@media(pointer:coarse){#quantix-app textarea,#quantix-app input,#quantix-app select{font-size:16px}}
+
+/* Grafico principale: ampio su tablet, livelli del bot e posizioni MT5. */
+#quantix-app .qi-market-home{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+#quantix-app .qi-market-card{padding:24px}
+#quantix-app .qi-market-session-controls{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+#quantix-app .qi-market-session-controls button{border:1px solid var(--qi-border);background:var(--qi-bg);color:var(--qi-muted);border-radius:9px;padding:8px 13px;min-height:40px;font-size:12px}
+#quantix-app .qi-market-session-controls button[aria-pressed=true]{border-color:var(--qi-accent);color:var(--qi-accent);background:var(--qi-surface2)}
+#quantix-app .qi-market-prices{display:flex;flex-wrap:wrap;gap:10px 20px;font-size:12px;font-variant-numeric:tabular-nums;margin:10px 0 0}
+#quantix-app .qi-market-chart{margin-top:6px}
+#quantix-app .qi-market-chart{touch-action:pan-y;cursor:grab;user-select:none;outline-offset:4px;min-height:330px}
+#quantix-app .qi-market-chart.dragging{cursor:grabbing}
+#quantix-app .qi-market-timeframes{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+#quantix-app .qi-market-timeframes button{min-height:40px;min-width:42px;padding:7px 10px;border:1px solid var(--qi-border);border-radius:9px;background:var(--qi-bg);color:var(--qi-muted);cursor:pointer}
+#quantix-app .qi-market-timeframes button[aria-pressed=true]{border-color:var(--qi-accent);color:var(--qi-accent);background:var(--qi-surface2)}
+#quantix-app .qi-market-navigation{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:5px 0 12px}
+#quantix-app .qi-market-navigation .qi-button{padding:9px 12px;font-size:12px;min-height:40px}
+#quantix-app .qi-market-history-status{color:var(--qi-muted);line-height:1.5;margin:8px 0;overflow-wrap:anywhere}
+#quantix-app .qi-entry-availability details{margin-top:14px;font-size:13px;line-height:1.7}
+#quantix-app .qi-entry-availability summary{color:var(--qi-accent);cursor:pointer}
+#quantix-app .qi-entry-criteria{margin-bottom:18px}
+#quantix-app .qi-entry-criteria .qi-section-head{flex-wrap:wrap;gap:12px}
+#quantix-app .qi-criteria-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 12px}
+#quantix-app .qi-criteria-tabs button{background:var(--qi-bg);color:var(--qi-muted);border:1px solid var(--qi-border);border-radius:9px;min-height:40px;padding:8px 13px;cursor:pointer}
+#quantix-app .qi-criteria-tabs button[aria-pressed=true]{border-color:var(--qi-accent);color:var(--qi-accent)}
+#quantix-app .qi-criteria-context{font-size:12px;color:var(--qi-muted);line-height:1.6;margin:12px 0}
+#quantix-app .qi-criteria-summary{border-left:3px solid var(--qi-accent);padding:12px 15px;background:var(--qi-surface2);border-radius:0 9px 9px 0}
+#quantix-app .qi-criteria-summary.stale{border-color:var(--qi-muted)}
+#quantix-app .qi-criteria-summary strong{font-size:15px}
+#quantix-app .qi-criteria-summary p{font-size:12px;line-height:1.6;color:var(--qi-muted);margin:6px 0 10px}
+#quantix-app .qi-criteria-counts{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:11px;color:var(--qi-muted)}
+#quantix-app .qi-criteria-note,#quantix-app .qi-criteria-foot{font-size:11px;color:var(--qi-muted);line-height:1.6;margin:12px 0}
+#quantix-app .qi-criteria-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:25px}
+#quantix-app .qi-criteria-columns h3{font-size:14px;margin:17px 0 7px}
+#quantix-app .qi-criterion{display:flex;gap:10px;padding:13px 0;border-bottom:1px solid var(--qi-border);min-width:0}
+#quantix-app .qi-criterion-symbol{width:25px;height:25px;flex-shrink:0;display:grid;place-items:center;border:1px solid var(--qi-border);border-radius:50%;font-size:13px;color:var(--qi-muted)}
+#quantix-app .qi-criterion-symbol.pass{color:var(--qi-green);border-color:var(--qi-green)}
+#quantix-app .qi-criterion-symbol.fail{color:var(--qi-red);border-color:var(--qi-red)}
+#quantix-app .qi-criterion-content{min-width:0;flex:1}
+#quantix-app .qi-criterion-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:5px 9px}
+#quantix-app .qi-criterion h4{font-size:12px;font-weight:600;margin:0}
+#quantix-app .qi-criterion p{font-size:12px;color:var(--qi-muted);line-height:1.6;margin:6px 0;overflow-wrap:anywhere}
+#quantix-app .qi-criterion-status{font-size:10px;font-weight:600;color:var(--qi-muted)}
+#quantix-app .qi-criterion-status.pass{color:var(--qi-green)}
+#quantix-app .qi-criterion-status.fail{color:var(--qi-red)}
+#quantix-app .qi-criterion-status.pending,#quantix-app .qi-criterion-status.alternative{color:var(--qi-accent)}
+#quantix-app .qi-criterion-gap{font-size:12px;display:block;color:var(--qi-text);line-height:1.5;margin-top:5px}
+#quantix-app .qi-criterion-source{font-size:10px;color:var(--qi-muted)}
+#quantix-app .qi-criteria-direction-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+#quantix-app .qi-criteria-direction-head h3{margin:0}
+#quantix-app .qi-criteria-details{margin-top:13px}
+#quantix-app .qi-criteria-details>summary{font-size:12px;color:var(--qi-accent);cursor:pointer;padding:8px 0;line-height:1.5}
+@media(max-width:760px){#quantix-app .qi-criteria-columns{grid-template-columns:minmax(0,1fr);gap:8px}#quantix-app .qi-criteria-tabs button{padding:8px 10px}#quantix-app .qi-entry-criteria{padding:18px}#quantix-app .qi-criterion h4,#quantix-app .qi-criterion p,#quantix-app .qi-criterion-gap{font-size:13px}#quantix-app .qi-criterion-status{font-size:11px}}
+#quantix-app .qi-entry-availability ul{padding-left:20px}
+#quantix-app .qi-ai-error{color:var(--qi-red);font-size:13px}
+#quantix-app .qi-ai-dots{color:var(--qi-accent);letter-spacing:3px;animation:qi-ai-pulse 1.4s ease-in-out infinite}
+#quantix-app .qi-message-head{flex-wrap:wrap}
+#quantix-app .qi-ai-card .qi-section-head{flex-wrap:wrap;gap:10px}
+#quantix-app button:disabled{cursor:wait;opacity:.5}
+@keyframes qi-ai-pulse{50%{opacity:.3}}
+@media(prefers-reduced-motion:reduce){#quantix-app .qi-ai-dots{animation:none}}
+#quantix-app .qi-orb-band{fill:var(--qi-accent);opacity:.045}
+#quantix-app .qi-orb-line{stroke:var(--qi-accent);stroke-width:1.3}
+#quantix-app .qi-orb-line.estimated{stroke-dasharray:7 5;opacity:.65}
+#quantix-app .qi-chart .qi-chart-range-label{fill:var(--qi-text);font-size:12px}
+#quantix-app .qi-position-line{stroke-width:1;stroke-dasharray:4 4}
+#quantix-app .qi-position-line.entry{stroke:var(--qi-accent)}
+#quantix-app .qi-position-line.sl{stroke:var(--qi-red)}
+#quantix-app .qi-position-line.tp{stroke:var(--qi-green)}
+#quantix-app .qi-current-price{stroke:var(--qi-text);stroke-width:.8;opacity:.8}
+#quantix-app .qi-price-tag{fill:var(--qi-accent)}
+#quantix-app .qi-chart text.qi-price-tag-text{fill:var(--qi-accent-ink);font-size:11px;font-weight:650}
+#quantix-app .qi-entry-marker.buy{fill:var(--qi-green)}
+#quantix-app .qi-entry-marker.sell{fill:var(--qi-red)}
+#quantix-app .qi-market-caption{display:flex;gap:8px 16px;flex-wrap:wrap;font-size:11px;color:var(--qi-muted);margin-top:8px}
+#quantix-app .qi-market-caption p{width:100%;line-height:1.5}
+#quantix-app .qi-market-key{display:inline-flex;align-items:center;gap:6px}
+#quantix-app .qi-market-key::before{content:'';display:inline-block;width:17px;height:2px;background:var(--qi-accent)}
+#quantix-app .qi-market-key.sl::before{background:var(--qi-red)}
+#quantix-app .qi-market-key.tp::before{background:var(--qi-green)}
+#quantix-app .qi-market-detail{font-variant-numeric:tabular-nums;color:var(--qi-muted);min-height:20px;margin-top:8px;overflow-wrap:anywhere}
+#quantix-app .qi-market-positions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+#quantix-app .qi-chart-position{padding:12px 0;border-top:1px solid var(--qi-border);display:flex;flex-wrap:wrap;justify-content:space-between;gap:9px;font-size:13px;font-variant-numeric:tabular-nums}
+#quantix-app .qi-chart-position>div{width:100%;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--qi-muted)}
+#quantix-app .qi-trade-sl{color:var(--qi-red)}
+#quantix-app .qi-trade-tp{color:var(--qi-green)}
+@media(max-width:700px){#quantix-app .qi-market-card{padding:17px}#quantix-app .qi-market-positions{grid-template-columns:1fr}#quantix-app .qi-market-session-controls button{padding:8px 10px}}
+
+/* Posizioni e risultato aperto subito all'inizio della Home. */
+#quantix-app .qi-open-positions{margin-bottom:18px}
+#quantix-app .qi-open-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+#quantix-app .qi-open-total{display:flex;flex-direction:column;gap:3px;text-align:right}
+#quantix-app .qi-open-total>span{font-size:12px;color:var(--qi-muted)}
+#quantix-app .qi-open-total>strong{font-size:28px;line-height:1.2;font-weight:700;letter-spacing:-.5px;overflow-wrap:anywhere}
+#quantix-app .qi-open-row{padding:12px 0;gap:5px;border-top:1px solid var(--qi-border);margin-top:12px}
+#quantix-app .qi-open-row+.qi-open-row{margin-top:0}
+#quantix-app .qi-open-row .qi-position-top>div{min-width:0}
+#quantix-app .qi-open-row .qi-position-top>strong{font-size:19px;white-space:nowrap}
+#quantix-app .qi-position-details summary{color:var(--qi-muted);font-size:12px;cursor:pointer;padding:7px 0;min-height:32px}
+#quantix-app .qi-position-details .qi-grid2{padding-top:7px}
+#quantix-app .qi-open-foot,#quantix-app .qi-open-empty{font-size:11px;color:var(--qi-muted);margin-top:8px}
+@media(max-width:600px){#quantix-app .qi-open-header{align-items:flex-start}#quantix-app .qi-open-header h2{font-size:17px}#quantix-app .qi-open-total{width:100%;text-align:left}#quantix-app .qi-open-total>strong{font-size:30px}#quantix-app .qi-open-row .qi-position-top>strong{font-size:18px}}
+
+/* Home essenziale e sezione Analisi, con navigazione inferiore. */
+#quantix-app .qi-nav{grid-template-columns:repeat(6,minmax(0,1fr))}
+#quantix-app[data-view=home] .qi-demo-line .qi-segment,#quantix-app[data-view=home] .qi-demo-line>.qi-button{display:none}
+#quantix-app[data-view=home] .qi-demo-line{margin-bottom:8px}
+#quantix-app[data-view=home] .qi-live-refresh{font-size:11px;margin:0 0 14px}
+#quantix-app[data-view=home] .qi-live-refresh>.qi-button{display:none}
+#quantix-app .qi-account-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px;margin-bottom:16px}
+#quantix-app .qi-account-summary>div{min-width:0}
+#quantix-app .qi-account-summary span{display:block;color:var(--qi-muted);font-size:12px;line-height:1.5}
+#quantix-app .qi-account-summary small{font-size:10px}
+#quantix-app .qi-account-summary strong{display:block;font-size:clamp(18px,2.2vw,25px);line-height:1.4;letter-spacing:-.35px;overflow-wrap:anywhere}
+#quantix-app .qi-bot-summary{display:flex;align-items:center;gap:10px;padding:15px 18px;margin-bottom:16px}
+#quantix-app .qi-bot-summary>.qi-dot{margin-top:0}
+#quantix-app .qi-bot-summary>div{min-width:0;flex:1}
+#quantix-app .qi-bot-summary strong{font-size:13px}
+#quantix-app .qi-bot-summary p{font-size:11px;color:var(--qi-muted);margin-top:2px}
+#quantix-app .qi-bot-summary>.qi-button{font-size:12px;padding:7px 4px;flex:none}
+#quantix-app .qi-home-chart>.qi-section-head{margin-bottom:6px}
+#quantix-app .qi-home-chart .qi-market-controls>span{display:none}
+#quantix-app .qi-home-chart .qi-chart-controls:not(.qi-market-controls),#quantix-app .qi-home-chart .qi-market-session-controls,#quantix-app .qi-home-chart .qi-market-positions,#quantix-app .qi-home-chart .qi-market-detail,#quantix-app .qi-home-chart .qi-market-caption p{display:none}
+#quantix-app .qi-home-chart .qi-market-chart{min-height:260px}
+#quantix-app .qi-home-chart .qi-market-caption{font-size:10px;gap:6px 12px}
+#quantix-app .qi-home-chart .qi-market-timeframes{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px;gap:5px}
+#quantix-app .qi-home-chart .qi-market-timeframes button{min-width:34px;min-height:36px;padding:6px 7px;font-size:11px;flex:none}
+#quantix-app .qi-home-chart .qi-market-navigation .qi-button{padding:6px 7px;font-size:11px;min-height:36px}
+#quantix-app .qi-analysis-page .qi-entry-criteria{margin-bottom:0}
+#quantix-app .qi-risk-summary{margin-top:16px}
+#quantix-app[data-view=home] .qi-top-actions>.qi-button{display:none}
+@media(min-width:821px){#quantix-app .qi-account-summary{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:600px){#quantix-app .qi-nav button{font-size:10px;letter-spacing:-.3px;min-width:0}#quantix-app .qi-nav .qi-icon{width:20px;height:20px}#quantix-app .qi-account-summary{gap:13px 12px;padding:16px}#quantix-app .qi-account-summary strong{font-size:20px}#quantix-app .qi-account-summary span{font-size:11px}#quantix-app .qi-home-chart .qi-market-chart svg{height:260px}#quantix-app .qi-open-positions{margin-bottom:16px}}

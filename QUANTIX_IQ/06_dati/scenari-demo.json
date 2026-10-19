@@ -1,0 +1,133 @@
+{
+  "origin": "simulation_only",
+  "scenarios": [
+    {
+      "id": "wait",
+      "title": "Attesa del breakout",
+      "text": "Range valido. Manca una chiusura M5 oltre il livello.",
+      "icon": "clock-3"
+    },
+    {
+      "id": "long",
+      "title": "Ingresso valido",
+      "text": "Si apre una posizione interamente simulata, con SL e TP.",
+      "icon": "trending-up"
+    },
+    {
+      "id": "atr",
+      "title": "Filtro ATR in attesa",
+      "text": "Range stretto. Il bot continua a valutare il breakout successivo.",
+      "icon": "activity"
+    },
+    {
+      "id": "short",
+      "title": "Vendita filtrata",
+      "text": "Breakout ribassista, ma il filtro giornaliero blocca lo short.",
+      "icon": "filter"
+    },
+    {
+      "id": "risk",
+      "title": "Protezione giornaliera",
+      "text": "La perdita simulata raggiunge il margine di protezione.",
+      "icon": "shield-alert"
+    },
+    {
+      "id": "offline",
+      "title": "Connessione assente",
+      "text": "Mostra la differenza tra attesa di un segnale e dati non aggiornati.",
+      "icon": "wifi-off"
+    }
+  ],
+  "initialState": {
+    "version": 1,
+    "view": "home",
+    "theme": "dark",
+    "scenario": "wait",
+    "minute": 910,
+    "settings": {
+      "name": "Marco",
+      "capital": 10000,
+      "dailyLimit": 450,
+      "buffer": 75,
+      "riskPercent": 2.5,
+      "notifications": true
+    },
+    "connected": true,
+    "paused": false,
+    "showLevels": true,
+    "timeframe": "M5",
+    "period": "30d",
+    "filter": "all",
+    "search": "",
+    "high": 2336,
+    "low": 2333,
+    "price": 2334.5,
+    "previous": 2334.2,
+    "atr": 16,
+    "todayClosed": 84.5,
+    "position": null,
+    "events": [
+      {
+        "id": 4,
+        "type": "trade",
+        "title": "Operazione precedente chiusa",
+        "detail": "Risultato dimostrativo realizzato oggi: +84,50 EUR.",
+        "time": "15:05",
+        "snapshot": {
+          "price": 2334.5,
+          "high": 2336,
+          "low": 2333,
+          "scenario": "wait"
+        }
+      },
+      {
+        "id": 3,
+        "type": "decision",
+        "title": "Filtro di volatilità superato",
+        "detail": "Ampiezza del range 3,00; soglia ATR 2,40. Dati dimostrativi.",
+        "time": "15:05",
+        "snapshot": {
+          "price": 2334.5,
+          "high": 2336,
+          "low": 2333,
+          "scenario": "wait"
+        }
+      },
+      {
+        "id": 2,
+        "type": "decision",
+        "title": "Range New York definito",
+        "detail": "Massimo 2.336,00; minimo 2.333,00. Orario italiano dello scenario.",
+        "time": "15:00",
+        "snapshot": {
+          "price": 2334.5,
+          "high": 2336,
+          "low": 2333,
+          "scenario": "wait"
+        }
+      },
+      {
+        "id": 1,
+        "type": "system",
+        "title": "Sessione dimostrativa caricata",
+        "detail": "Dati locali di esempio. Nessun conto collegato.",
+        "time": "14:30",
+        "snapshot": {
+          "price": 2334.5,
+          "high": 2336,
+          "low": 2333,
+          "scenario": "wait"
+        }
+      }
+    ],
+    "messages": [
+      {
+        "role": "bot",
+        "text": "Sto monitorando XAUUSD nella demo della prova298. Il range è valido: aspetto una chiusura M5 sopra 2.336,00 o sotto 2.333,00, con gli altri filtri soddisfatti.",
+        "time": "15:10"
+      }
+    ],
+    "serial": 4,
+    "closedTrades": []
+  }
+}

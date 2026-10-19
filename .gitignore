@@ -1,0 +1,34 @@
+# Cache, ambienti e dipendenze locali
+__pycache__/
+*.py[cod]
+*.log
+.venv/
+venv/
+node_modules/
+dependencies/
+.DS_Store
+Thumbs.db
+~$*
+
+# Credenziali e dati privati
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+QUANTIX_IQ/07_collegamento/config.json
+QUANTIX_IQ/06_dati/*
+!QUANTIX_IQ/06_dati/README.md
+!QUANTIX_IQ/06_dati/scenari-demo.json
+!QUANTIX_IQ/06_dati/accesso_privato.example.json
+QUANTIX_IQ/05_verifiche/*
+!QUANTIX_IQ/05_verifiche/README.md
+QUANTIX_IQ/INDIRIZZO_TELEFONO.txt
+QUANTIX_IQ/04_bot_riferimento/origine.json
+
+# I sorgenti MQ5, i compilati EX5, i preset SET e gli Excel sono intenzionalmente inclusi.
